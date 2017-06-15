@@ -251,6 +251,7 @@ func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
     // explored is where we've been
     var explored: Set<StateType> = Set<StateType>()
     explored.insert(initialState)
+    
     // keep going while there is more to explore
     while !frontier.isEmpty {
         let currentNode = frontier.pop()
