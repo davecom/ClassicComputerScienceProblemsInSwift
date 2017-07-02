@@ -50,7 +50,7 @@ func fib3(n: UInt) -> UInt {
 
 fib3(n: 2)
 fib3(n: 4)
-fib2(n: 10)
+fib3(n: 10)
 fib3(n: 20)
 fib3(n: 21)
 //print(fibMemo)
@@ -68,51 +68,65 @@ func fib4(n: UInt) -> UInt {
 
 fib4(n: 20)
 
-/// Knapsack
-
-struct Item {
-    let name: String
-    let weight: Int
-    let value: Float
-}
-
-// based on sedgewick second edition p 596
-func knapsack(items: [Item], maxCapacity: Int) -> [Item] {
-    //build up dynamic programming table
-    var table: [[Float]] = [[Float]](repeating: [Float](repeating: 0.0, count: maxCapacity + 1), count: items.count + 1)  //initialize table - overshooting in size
-    for i in 1...items.count {
-        for capacity in 1...maxCapacity {
-            if capacity - items[i - 1].weight >= 0 { // still room in knapsack
-                table[i][capacity] = max(table[i - 1][capacity - items[i - 1].weight] + items[i - 1].value, table[i - 1][capacity])  // only take if more valuable than previous combo
-            } else { // no room for this item
-                table[i][capacity] = table[i - 1][capacity] //use prior combo
+/// Trivial Compression
+struct CompressedGene {
+    let length: Int
+    private let bitVector: CFMutableBitVector
+    
+    init(original: String) {
+        length = original.characters.count
+        // default allocator, need 2 * length number of bits
+        bitVector = CFBitVectorCreateMutable(kCFAllocatorDefault, length * 2)
+        CFBitVectorSetCount(bitVector, length * 2) // fills the bit vector with 0s
+        compress(gene: original)
+    }
+    
+    private func compress(gene: String) {
+        for (index, nucleotide) in gene.uppercased().characters.enumerated() {
+            let nStart = index * 2 // start of each new nucleotide
+            switch nucleotide {
+            case "A": // 00
+                CFBitVectorSetBitAtIndex(bitVector, nStart, 0)
+                CFBitVectorSetBitAtIndex(bitVector, nStart + 1, 0)
+            case "C": // 01
+                CFBitVectorSetBitAtIndex(bitVector, nStart, 0)
+                CFBitVectorSetBitAtIndex(bitVector, nStart + 1, 1)
+            case "G": // 10
+                CFBitVectorSetBitAtIndex(bitVector, nStart, 1)
+                CFBitVectorSetBitAtIndex(bitVector, nStart + 1, 0)
+            case "T": // 11
+                CFBitVectorSetBitAtIndex(bitVector, nStart, 1)
+                CFBitVectorSetBitAtIndex(bitVector, nStart + 1, 1)
+            default:
+                print("Unexpected character \(nucleotide) at \(index)")
             }
         }
     }
-    // figure out solution from table
-    var solution: [Item] = [Item]()
-    var capacity = maxCapacity
-    for i in stride(from: items.count, to: 0, by: -1) { // work backwards
-        if table[i - 1][capacity] != table[i][capacity] {  // did we use this item?
-            solution.append(items[i - 1])
-            capacity -= items[i - 1].weight  // if we used an item, remove its weight
+    
+    func decompress() -> String {
+        var gene: String = ""
+        for index in 0..<length {
+            let nStart = index * 2 // start of each nucleotide
+            let firstBit = CFBitVectorGetBitAtIndex(bitVector, nStart)
+            let secondBit = CFBitVectorGetBitAtIndex(bitVector, nStart + 1)
+            switch (firstBit, secondBit) {
+            case (0, 0): // 00 A
+                gene += "A"
+            case (0, 1): // 01 C
+                gene += "C"
+            case (1, 0): // 10 G
+                gene += "G"
+            case (1, 1): // 11 T
+                gene += "T"
+            default:
+                break // unreachable, but need default
+            }
         }
+        return gene
     }
-    return solution
 }
 
-let items = [Item(name: "television", weight: 50, value: 500),
-    Item(name: "candlesticks", weight: 2, value: 300),
-    Item(name: "stereo", weight: 35, value: 400),
-    Item(name: "laptop", weight: 3, value: 1000),
-    Item(name: "food", weight: 15, value: 50),
-    Item(name: "clothing", weight: 20, value: 800),
-    Item(name: "jewelry", weight: 1, value: 4000),
-    Item(name: "books", weight: 100, value: 300),
-    Item(name: "printer", weight: 18, value: 30),
-    Item(name: "refridgerator", weight: 200, value: 700),
-    Item(name: "painting", weight: 10, value: 1000)]
-knapsack(items: items, maxCapacity: 75)
+print(CompressedGene(original: "ATGAATGCC").decompress())
 
 /// Unbreakable Encryption
 

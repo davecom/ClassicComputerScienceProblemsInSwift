@@ -230,7 +230,7 @@ class Node<T>: Comparable, Hashable {
         self.heuristic = heuristic
     }
     
-    var hashValue: Int { return (Int) (cost + heuristic) }
+    var hashValue: Int { return Int(cost + heuristic) }
 }
 
 func < <T>(lhs: Node<T>, rhs: Node<T>) -> Bool {
@@ -335,8 +335,8 @@ if let solution = bfs(initialState: start, goalTestFn: goalTest, successorFn: su
 //Heuristics
 
 func euclideanDistance(ml: MazeLocation) -> Float {
-    let xdist = abs(ml.col - goal.col)
-    let ydist = abs(ml.row - goal.row)
+    let xdist = ml.col - goal.col
+    let ydist = ml.row - goal.row
     return sqrt(Float((xdist * xdist) + (ydist * ydist)))
 }
 
@@ -378,8 +378,7 @@ if let solution = astar(initialState: start, goalTestFn: goalTest, successorFn: 
     printMaze(maze3)
 }
 
-enum Person { case Missionary, Cannibal }
-var people: [Person] = [.Missionary, .Cannibal, .Missionary, .Cannibal]
+/// Missionaries and Cannibals
 
 let maxNum = 3 // max number of missionaries or cannibals
 

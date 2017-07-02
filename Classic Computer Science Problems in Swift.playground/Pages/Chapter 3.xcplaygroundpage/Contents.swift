@@ -135,16 +135,16 @@ for variable in variables {
 }
 
 var csp = CSP<String, String>(variables: variables, domains: domains)
-csp.addConstraint(MapColoringConstraint(place1: "Western Australia", place2: "Northern Territory"));
-csp.addConstraint(MapColoringConstraint(place1: "Western Australia", place2: "South Australia"));
-csp.addConstraint(MapColoringConstraint(place1: "South Australia", place2: "Northern Territory"));
-csp.addConstraint(MapColoringConstraint(place1: "Queensland", place2: "Northern Territory"));
+csp.addConstraint(MapColoringConstraint(place1: "Western Australia", place2: "Northern Territory"))
+csp.addConstraint(MapColoringConstraint(place1: "Western Australia", place2: "South Australia"))
+csp.addConstraint(MapColoringConstraint(place1: "South Australia", place2: "Northern Territory"))
+csp.addConstraint(MapColoringConstraint(place1: "Queensland", place2: "Northern Territory"))
 csp.addConstraint(MapColoringConstraint(place1: "Queensland",
-    place2: "South Australia"));
-csp.addConstraint(MapColoringConstraint(place1: "Queensland", place2: "New South Wales"));
-csp.addConstraint(MapColoringConstraint(place1: "New South Wales", place2: "South Australia"));
-csp.addConstraint(MapColoringConstraint(place1: "Victoria", place2: "South Australia"));
-csp.addConstraint(MapColoringConstraint(place1: "Victoria",place2: "New South Wales"));
+    place2: "South Australia"))
+csp.addConstraint(MapColoringConstraint(place1: "Queensland", place2: "New South Wales"))
+csp.addConstraint(MapColoringConstraint(place1: "New South Wales", place2: "South Australia"))
+csp.addConstraint(MapColoringConstraint(place1: "Victoria", place2: "South Australia"))
+csp.addConstraint(MapColoringConstraint(place1: "Victoria",place2: "New South Wales"))
 
 if let solution = backtrackingSearch(csp: csp) {
     print(solution)
@@ -235,25 +235,26 @@ func generateDomain(word: String, grid: Grid) -> [[GridLocation]] {
     var domain: [[GridLocation]] = [[GridLocation]]()
     let height = grid.count
     let width = grid[0].count
+    let wordLength = word.characters.count
     for row in 0..<height {
         for col in 0..<width {
-            if (col + word.characters.count <= width) {
+            let columns = col...(col + wordLength)
+            let rows = row...(row + wordLength)
+            if (col + wordLength <= width) {
                 // left to right
-                domain.append((col...(col + word.characters.count)).map({GridLocation(row: row, col: $0)}))
+                domain.append(columns.map({GridLocation(row: row, col: $0)}))
                 // diagonal towards bottom right
-                if (row + word.characters.count <= height) {
-                    domain.append((row...(row + word.characters.count)).map({GridLocation(row: $0, col: col + ($0 - row))}))
+                if (row + wordLength <= height) {
+                    domain.append(rows.map({GridLocation(row: $0, col: col + ($0 - row))}))
                 }
             }
-            
-            if (row + word.characters.count <= height) {
+            if (row + wordLength <= height) {
                 // top to bottom
-                domain.append((row...(row + word.characters.count)).map({GridLocation(row: $0, col: col)}))
+                domain.append(rows.map({GridLocation(row: $0, col: col)}))
                 // diagonal towards bottom left
-                if (col - word.characters.count >= 0) {
-                    domain.append((row...(row + word.characters.count)).map({GridLocation(row: $0, col: col - ($0 - row))}))
+                if (col - wordLength >= 0) {
+                    domain.append(rows.map({GridLocation(row: $0, col: col - ($0 - row))}))
                 }
-
             }
         }
     }
@@ -277,6 +278,9 @@ final class WordSearchConstraint: Constraint <String, [GridLocation]> {
         return true
     }
 }
+
+// Commented out because it takes a long time to execute! Uncomment all of the following
+// lines to see the word search in action.
 
 //let words: [String] = ["MATTHEW", "JOE", "MARY", "SARAH", "SALLY"]
 //var locations = Dictionary<String, [[GridLocation]]>()
@@ -320,9 +324,9 @@ final class SendMoreMoneyConstraint: Constraint <Character, Int> {
                 let more: Int = m * 1000 + o * 100 + r * 10 + e
                 let money: Int = m * 10000 + o * 1000 + n * 100 + e * 10 + y
                 if (send + more) == money {
-                    return true;
+                    return true
                 } else {
-                    return false;
+                    return false
                 }
             } else {
                 return false
