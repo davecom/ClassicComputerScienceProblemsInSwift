@@ -28,7 +28,7 @@ extension Array {
         for i in (1..<count).reversed() { // count backwards
             let position = Int(arc4random_uniform(UInt32(i + 1))) // random to swap
             if i != position { // swap with the end, don't bother with selp swaps
-                swap(&shuffledArray[i], &shuffledArray[position])
+                shuffledArray.swapAt(i, position)
             }
         }
         return shuffledArray
@@ -257,7 +257,7 @@ final class SendMoreMoney: Chromosome {
         if drand48() < 0.5 { // half the time random letter
             genes[position2] = SendMoreMoney.letters[position1]
         } else { // half the time random swap
-            if position1 != position2 { swap(&genes[position1], &genes[position2]) }
+            if position1 != position2 { genes.swapAt(position1, position2) }
         }
     }
     
