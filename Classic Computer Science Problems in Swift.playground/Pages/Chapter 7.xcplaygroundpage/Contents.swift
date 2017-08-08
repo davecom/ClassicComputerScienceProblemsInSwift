@@ -23,20 +23,42 @@ import Foundation
 
 // MARK: Randomization & Statistical Helpers
 
+struct Random {
+    private static var seeded = false
+    
+    // a random Double between *from* and *to*, assumes *from* < *to*
+    static func double(from: Double, to: Double) -> Double {
+        if !Random.seeded {
+            srand48(time(nil))
+            Random.seeded = true
+        }
+        
+        return (drand48() * (to - from)) + from
+    }
+}
+
 /// Create *number* of random Doubles between 0.0 and 1.0
 func randomWeights(number: Int) -> [Double] {
-    return (0..<number).map{ _ in Math.randomFractional() }
+    return (0..<number).map{ _ in Random.double(from: 0.0, to: 1.0) }
 }
 
 /// Create *number* of random Doubles between 0.0 and *limit*
 func randomNums(number: Int, limit: Double) -> [Double] {
-    return (0..<number).map{ _ in Math.randomTo(limit: limit) }
+    return (0..<number).map{ _ in Random.double(from: 0.0, to: limit) }
 }
 
-/// primitive shuffle - not fisher yates... not uniform distribution
-extension Sequence where Iterator.Element : Comparable {
-    var shuffled: [Self.Iterator.Element] {
-        return sorted { _, _ in arc4random() % 2 == 0 }
+// A derivative of the Fisher-Yates algorithm to shuffle an array
+extension Array {
+    public func shuffled() -> Array<Element> {
+        var shuffledArray = self // value semantics (Array is Struct) makes this a copy
+        if count < 2 { return shuffledArray } // already shuffled
+        for i in (1..<count).reversed() { // count backwards
+            let position = Int(arc4random_uniform(UInt32(i + 1))) // random to swap
+            if i != position { // swap with the end, don't bother with selp swaps
+                shuffledArray.swapAt(i, position)
+            }
+        }
+        return shuffledArray
     }
 }
 
@@ -106,36 +128,7 @@ public func sum(x: [Double]) -> Double {
     return result
 }
 
-// MARK: Random Number Generation
 
-// this struct & the randomFractional() function
-// based on http://stackoverflow.com/a/35919911/281461
-struct Math {
-    private static var seeded = false
-    
-    static func randomFractional() -> Double {
-        
-        if !Math.seeded {
-            let time = Int(NSDate().timeIntervalSinceReferenceDate)
-            srand48(time)
-            Math.seeded = true
-        }
-        
-        return drand48()
-    }
-    
-    // addition, just multiplies random number by *limit*
-    static func randomTo(limit: Double) -> Double {
-        
-        if !Math.seeded {
-            let time = Int(NSDate().timeIntervalSinceReferenceDate)
-            srand48(time)
-            Math.seeded = true
-        }
-        
-        return drand48() * limit
-    }
-}
 
 /// An individual node in a layer
 class Neuron {
@@ -282,8 +275,7 @@ class Network {
     
     /// for generalized results that require classification
     /// this function will return the correct number of trials
-    /// and the percentge correct out of the total
-    /// See the unit tests for some examples
+    /// and the percentage correct out of the total
     func validate<T: Equatable>(inputs:[[Double]], expecteds:[T], interpretOutput: ([Double]) -> T) -> (correct: Int, total: Int, percentage: Double) {
         var correct = 0
         for (input, expected) in zip(inputs, expecteds) {
@@ -295,75 +287,120 @@ class Network {
         let percentage = Double(correct) / Double(inputs.count)
         return (correct, inputs.count, percentage)
     }
-    
-    // for when result is a single neuron
-    func validate(inputs:[[Double]], expecteds:[Double], accuracy: Double) -> (correct: Int, total: Int, percentage: Double) {
-        var correct = 0
-        for (input, expected) in zip(inputs, expecteds) {
-            let result = outputs(input: input)[0]
-            if abs(expected - result) < accuracy {
-                correct += 1
-            }
-        }
-        let percentage = Double(correct) / Double(inputs.count)
-        return (correct, inputs.count, percentage)
-    }
 }
 
-var network: Network = Network(layerStructure: [13,7,3], learningRate: 7.0)
-// for training
-var wineParameters: [[Double]] = [[Double]]()
-var wineClassifications: [[Double]] = [[Double]]()
-// for testing/validation
-var wineSamples: [[Double]] = [[Double]]()
-var wineCultivars: [Int] = [Int]()
+/// Wine Test
 
-func parseWineCSV() {
+//var network: Network = Network(layerStructure: [13,7,3], learningRate: 7.0)
+//// for training
+//var wineParameters: [[Double]] = [[Double]]()
+//var wineClassifications: [[Double]] = [[Double]]()
+//// for testing/validation
+//var wineSamples: [[Double]] = [[Double]]()
+//var wineCultivars: [Int] = [Int]()
+//
+//func parseWineCSV() {
+//    let myBundle = Bundle.main
+//    let urlpath = myBundle.path(forResource: "wine", ofType: "csv")
+//    let url = URL(fileURLWithPath: urlpath!)
+//    let csv = try! String.init(contentsOf: url)
+//    let lines = csv.components(separatedBy: "\n")
+//
+//    let shuffledLines = lines.shuffled()
+//    for line in shuffledLines {
+//        if line == "" { continue }
+//        let items = line.components(separatedBy: ",")
+//        let parameters = items[1...13].map{ Double($0)! }
+//        wineParameters.append(parameters)
+//        let species = Int(items[0])!
+//        if species == 1 {
+//            wineClassifications.append([1.0, 0.0, 0.0])
+//        } else if species == 2 {
+//            wineClassifications.append([0.0, 1.0, 0.0])
+//        } else {
+//            wineClassifications.append([0.0, 0.0, 1.0])
+//        }
+//        wineCultivars.append(species)
+//    }
+//    normalizeByColumnMax(dataset: &wineParameters)
+//    wineSamples = Array(wineParameters.dropFirst(150))
+//    wineCultivars = Array(wineCultivars.dropFirst(150))
+//    wineParameters = Array(wineParameters.dropLast(28))
+//}
+//
+//func interpretOutput(output: [Double]) -> Int {
+//    if output.max()! == output[0] {
+//        return 1
+//    } else if output.max()! == output[1] {
+//        return 2
+//    } else {
+//        return 3
+//    }
+//}
+//
+//parseWineCSV()
+//// train over entire data set 5 times
+//for _ in 0..<5 {
+//    network.train(inputs: wineParameters, expecteds: wineClassifications, printError: false)
+//}
+//
+//let results = network.validate(inputs: wineSamples, expecteds: wineCultivars, interpretOutput: interpretOutput)
+//print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
+
+var network: Network = Network(layerStructure: [4,5,3], learningRate: 0.3)
+var irisParameters: [[Double]] = [[Double]]()
+var irisClassifications: [[Double]] = [[Double]]()
+var irisSpecies: [String] = [String]()
+
+func parseIrisCSV() {
     let myBundle = Bundle.main
-    let urlpath = myBundle.path(forResource: "wine", ofType: "csv")
+    let urlpath = myBundle.path(forResource: "iris", ofType: "csv")
     let url = URL(fileURLWithPath: urlpath!)
     let csv = try! String.init(contentsOf: url)
     let lines = csv.components(separatedBy: "\n")
     
-    let shuffledLines = lines.shuffled
+    let shuffledLines = lines.shuffled()
     for line in shuffledLines {
         if line == "" { continue }
         let items = line.components(separatedBy: ",")
-        let parameters = items[1...13].map{ Double($0)! }
-        wineParameters.append(parameters)
-        let species = Int(items[0])!
-        if species == 1 {
-            wineClassifications.append([1.0, 0.0, 0.0])
-        } else if species == 2 {
-            wineClassifications.append([0.0, 1.0, 0.0])
+        let parameters = items[0...3].map{ Double($0)! }
+        irisParameters.append(parameters)
+        let species = items[4]
+        if species == "Iris-setosa" {
+            irisClassifications.append([1.0, 0.0, 0.0])
+        } else if species == "Iris-versicolor" {
+            irisClassifications.append([0.0, 1.0, 0.0])
         } else {
-            wineClassifications.append([0.0, 0.0, 1.0])
+            irisClassifications.append([0.0, 0.0, 1.0])
         }
-        wineCultivars.append(species)
+        irisSpecies.append(species)
     }
-    normalizeByColumnMax(dataset: &wineParameters)
-    wineSamples = Array(wineParameters.dropFirst(150))
-    wineCultivars = Array(wineCultivars.dropFirst(150))
-    wineParameters = Array(wineParameters.dropLast(28))
+    normalizeByColumnMax(dataset: &irisParameters)
 }
 
-func interpretOutput(output: [Double]) -> Int {
+func interpretOutput(output: [Double]) -> String {
     if output.max()! == output[0] {
-        return 1
+        return "Iris-setosa"
     } else if output.max()! == output[1] {
-        return 2
+        return "Iris-versicolor"
     } else {
-        return 3
+        return "Iris-virginica"
     }
 }
 
-parseWineCSV()
-// train over entire data set 5 times
-for _ in 0..<5 {
-    network.train(inputs: wineParameters, expecteds: wineClassifications, printError: false)
+// Put setup code here. This method is called before the invocation of each test method in the class.
+parseIrisCSV()
+// train over first 140 irises in data set 20 times
+let trainers = Array(irisParameters[0..<140])
+let trainersCorrects = Array(irisClassifications[0..<140])
+for _ in 0..<20 {
+    network.train(inputs: trainers, expecteds: trainersCorrects, printError: false)
 }
 
-let results = network.validate(inputs: wineSamples, expecteds: wineCultivars, interpretOutput: interpretOutput)
+// test over the last 10 of the irses in the data set
+let testers = Array(irisParameters[140..<150])
+let testersCorrects = Array(irisSpecies[140..<150])
+let results = network.validate(inputs: testers, expecteds: testersCorrects, interpretOutput: interpretOutput)
 print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
 
 //: [Next](@next)
