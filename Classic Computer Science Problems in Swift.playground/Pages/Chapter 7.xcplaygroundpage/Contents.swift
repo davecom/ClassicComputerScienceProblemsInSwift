@@ -23,6 +23,21 @@ import Foundation
 
 // MARK: Randomization & Statistical Helpers
 
+// A derivative of the Fisher-Yates algorithm to shuffle an array
+extension Array {
+    public func shuffled() -> Array<Element> {
+        var shuffledArray = self // value semantics (Array is Struct) makes this a copy
+        if count < 2 { return shuffledArray } // already shuffled
+        for i in (1..<count).reversed() { // count backwards
+            let position = Int(arc4random_uniform(UInt32(i + 1))) // random to swap
+            if i != position { // swap with the end, don't bother with selp swaps
+                shuffledArray.swapAt(i, position)
+            }
+        }
+        return shuffledArray
+    }
+}
+
 struct Random {
     private static var seeded = false
     
@@ -40,39 +55,6 @@ struct Random {
 /// Create *number* of random Doubles between 0.0 and 1.0
 func randomWeights(number: Int) -> [Double] {
     return (0..<number).map{ _ in Random.double(from: 0.0, to: 1.0) }
-}
-
-/// Create *number* of random Doubles between 0.0 and *limit*
-func randomNums(number: Int, limit: Double) -> [Double] {
-    return (0..<number).map{ _ in Random.double(from: 0.0, to: limit) }
-}
-
-// A derivative of the Fisher-Yates algorithm to shuffle an array
-extension Array {
-    public func shuffled() -> Array<Element> {
-        var shuffledArray = self // value semantics (Array is Struct) makes this a copy
-        if count < 2 { return shuffledArray } // already shuffled
-        for i in (1..<count).reversed() { // count backwards
-            let position = Int(arc4random_uniform(UInt32(i + 1))) // random to swap
-            if i != position { // swap with the end, don't bother with selp swaps
-                shuffledArray.swapAt(i, position)
-            }
-        }
-        return shuffledArray
-    }
-}
-
-/// assumes all rows are of equal length
-/// and divide each column by its max throughout the data set
-/// for that column
-func normalizeByColumnMax( dataset:inout [[Double]]) {
-    for colNum in 0..<dataset[0].count {
-        let column = dataset.map { $0[colNum] }
-        let maximum = column.max()!
-        for rowNum in 0..<dataset.count {
-            dataset[rowNum][colNum] = dataset[rowNum][colNum] / maximum
-        }
-    }
 }
 
 // MARK: Activation Functions and Their Derivatives
@@ -127,8 +109,6 @@ public func sum(x: [Double]) -> Double {
     
     return result
 }
-
-
 
 /// An individual node in a layer
 class Neuron {
@@ -289,6 +269,79 @@ class Network {
     }
 }
 
+/// MARK: Normalization
+
+/// assumes all rows are of equal length
+/// and divide each column by its max throughout the data set
+/// for that column
+func normalizeByColumnMax( dataset:inout [[Double]]) {
+    for colNum in 0..<dataset[0].count {
+        let column = dataset.map { $0[colNum] }
+        let maximum = column.max()!
+        for rowNum in 0..<dataset.count {
+            dataset[rowNum][colNum] = dataset[rowNum][colNum] / maximum
+        }
+    }
+}
+
+// MARK: Iris Test
+
+var network: Network = Network(layerStructure: [4,5,3], learningRate: 0.3)
+var irisParameters: [[Double]] = [[Double]]()
+var irisClassifications: [[Double]] = [[Double]]()
+var irisSpecies: [String] = [String]()
+
+func parseIrisCSV() {
+    let myBundle = Bundle.main
+    let urlpath = myBundle.path(forResource: "iris", ofType: "csv")
+    let url = URL(fileURLWithPath: urlpath!)
+    let csv = try! String.init(contentsOf: url)
+    let lines = csv.components(separatedBy: "\n")
+    
+    let shuffledLines = lines.shuffled()
+    for line in shuffledLines {
+        if line == "" { continue }
+        let items = line.components(separatedBy: ",")
+        let parameters = items[0...3].map{ Double($0)! }
+        irisParameters.append(parameters)
+        let species = items[4]
+        if species == "Iris-setosa" {
+            irisClassifications.append([1.0, 0.0, 0.0])
+        } else if species == "Iris-versicolor" {
+            irisClassifications.append([0.0, 1.0, 0.0])
+        } else {
+            irisClassifications.append([0.0, 0.0, 1.0])
+        }
+        irisSpecies.append(species)
+    }
+    normalizeByColumnMax(dataset: &irisParameters)
+}
+
+func interpretOutput(output: [Double]) -> String {
+    if output.max()! == output[0] {
+        return "Iris-setosa"
+    } else if output.max()! == output[1] {
+        return "Iris-versicolor"
+    } else {
+        return "Iris-virginica"
+    }
+}
+
+// Put setup code here. This method is called before the invocation of each test method in the class.
+parseIrisCSV()
+// train over first 140 irises in data set 20 times
+let trainers = Array(irisParameters[0..<140])
+let trainersCorrects = Array(irisClassifications[0..<140])
+for _ in 0..<20 {
+    network.train(inputs: trainers, expecteds: trainersCorrects, printError: false)
+}
+
+// test over the last 10 of the irses in the data set
+let testers = Array(irisParameters[140..<150])
+let testersCorrects = Array(irisSpecies[140..<150])
+let results = network.validate(inputs: testers, expecteds: testersCorrects, interpretOutput: interpretOutput)
+print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
+
 /// Wine Test
 
 //var network: Network = Network(layerStructure: [13,7,3], learningRate: 7.0)
@@ -346,62 +399,6 @@ class Network {
 //
 //let results = network.validate(inputs: wineSamples, expecteds: wineCultivars, interpretOutput: interpretOutput)
 //print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
-
-var network: Network = Network(layerStructure: [4,5,3], learningRate: 0.3)
-var irisParameters: [[Double]] = [[Double]]()
-var irisClassifications: [[Double]] = [[Double]]()
-var irisSpecies: [String] = [String]()
-
-func parseIrisCSV() {
-    let myBundle = Bundle.main
-    let urlpath = myBundle.path(forResource: "iris", ofType: "csv")
-    let url = URL(fileURLWithPath: urlpath!)
-    let csv = try! String.init(contentsOf: url)
-    let lines = csv.components(separatedBy: "\n")
-    
-    let shuffledLines = lines.shuffled()
-    for line in shuffledLines {
-        if line == "" { continue }
-        let items = line.components(separatedBy: ",")
-        let parameters = items[0...3].map{ Double($0)! }
-        irisParameters.append(parameters)
-        let species = items[4]
-        if species == "Iris-setosa" {
-            irisClassifications.append([1.0, 0.0, 0.0])
-        } else if species == "Iris-versicolor" {
-            irisClassifications.append([0.0, 1.0, 0.0])
-        } else {
-            irisClassifications.append([0.0, 0.0, 1.0])
-        }
-        irisSpecies.append(species)
-    }
-    normalizeByColumnMax(dataset: &irisParameters)
-}
-
-func interpretOutput(output: [Double]) -> String {
-    if output.max()! == output[0] {
-        return "Iris-setosa"
-    } else if output.max()! == output[1] {
-        return "Iris-versicolor"
-    } else {
-        return "Iris-virginica"
-    }
-}
-
-// Put setup code here. This method is called before the invocation of each test method in the class.
-parseIrisCSV()
-// train over first 140 irises in data set 20 times
-let trainers = Array(irisParameters[0..<140])
-let trainersCorrects = Array(irisClassifications[0..<140])
-for _ in 0..<20 {
-    network.train(inputs: trainers, expecteds: trainersCorrects, printError: false)
-}
-
-// test over the last 10 of the irses in the data set
-let testers = Array(irisParameters[140..<150])
-let testersCorrects = Array(irisSpecies[140..<150])
-let results = network.validate(inputs: testers, expecteds: testersCorrects, interpretOutput: interpretOutput)
-print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
 
 //: [Next](@next)
 
