@@ -57,6 +57,40 @@ func randomWeights(number: Int) -> [Double] {
     return (0..<number).map{ _ in Random.double(from: 0.0, to: 1.0) }
 }
 
+// MARK: SIMD Accelerated Math
+
+// The next four functions are based on example from Surge project
+// https://github.com/mattt/Surge/blob/master/Source/Arithmetic.swift
+/// Find the dot product of two vectors
+/// assuming that they are of the same length
+/// using SIMD instructions to speed computation
+func dotProduct(_ xs: [Double], _ ys: [Double]) -> Double {
+    var answer: Double = 0.0
+    vDSP_dotprD(xs, 1, ys, 1, &answer, vDSP_Length(xs.count))
+    return answer
+}
+
+/// Subtract one vector from another
+public func sub(_ x: [Double], _ y: [Double]) -> [Double] {
+    var results = [Double](y)
+    catlas_daxpby(Int32(x.count), 1.0, x, 1, -1, &results, 1)
+    return results
+}
+
+/// Multiply two vectors together
+public func mul(_ x: [Double], _ y: [Double]) -> [Double] {
+    var results = [Double](repeating: 0.0, count: x.count)
+    vDSP_vmulD(x, 1, y, 1, &results, 1, vDSP_Length(x.count))
+    return results
+}
+
+/// Sum a vector
+public func sum(_ x: [Double]) -> Double {
+    var result: Double = 0.0
+    vDSP_sveD(x, 1, &result, vDSP_Length(x.count))
+    return result
+}
+
 // MARK: Activation Functions and Their Derivatives
 
 /// the classic sigmoid activation function
@@ -69,57 +103,16 @@ func derivativeSigmoid(_ x: Double) -> Double {
     return sigmoid(x) * (1 - sigmoid(x))
 }
 
-// MARK: SIMD Accelerated Math
-
-// Based on example from Surge project
-// https://github.com/mattt/Surge/blob/master/Source/Arithmetic.swift
-/// Find the dot product of two vectors
-/// assuming that they are of the same length
-/// using SIMD instructions to speed computation
-func dotProduct(_ xs: [Double], _ ys: [Double]) -> Double {
-    var answer: Double = 0.0
-    vDSP_dotprD(xs, 1, ys, 1, &answer, vDSP_Length(xs.count))
-    return answer
-}
-
-// Based on example from Surge project
-// https://github.com/mattt/Surge/blob/master/Source/Arithmetic.swift
-/// Subtract one vector from another
-/// assuming that they are of the same length
-/// using SIMD instructions to speed computation
-public func sub(x: [Double], y: [Double]) -> [Double] {
-    var results = [Double](y)
-    catlas_daxpby(Int32(x.count), 1.0, x, 1, -1, &results, 1)
-    
-    return results
-}
-
-// Another Surge example, see above citation
-public func mul(x: [Double], y: [Double]) -> [Double] {
-    var results = [Double](repeating: 0.0, count: x.count)
-    vDSP_vmulD(x, 1, y, 1, &results, 1, vDSP_Length(x.count))
-    
-    return results
-}
-
-// Another Surge example, see above citation
-public func sum(x: [Double]) -> Double {
-    var result: Double = 0.0
-    vDSP_sveD(x, 1, &result, vDSP_Length(x.count))
-    
-    return result
-}
-
 /// An individual node in a layer
 class Neuron {
     var weights: [Double]
     var activationFunction: (Double) -> Double
     var derivativeActivationFunction: (Double) -> Double
-    var inputCache: Double = 0.0
+    var outputCache: Double = 0.0
     var delta: Double = 0.0
     var learningRate: Double
     
-    init(weights: [Double], activationFunction: @escaping (Double) -> Double, derivativeActivationFunction: @escaping (Double) -> Double, learningRate: Double = 0.25) {
+    init(weights: [Double], activationFunction: @escaping (Double) -> Double, derivativeActivationFunction: @escaping (Double) -> Double, learningRate: Double) {
         self.weights = weights
         self.activationFunction = activationFunction
         self.derivativeActivationFunction = derivativeActivationFunction
@@ -129,8 +122,8 @@ class Neuron {
     /// The output that will be going to the next layer
     /// or the final output if this is an output layer
     func output(inputs: [Double]) -> Double {
-        inputCache = dotProduct(inputs, weights)
-        return activationFunction(inputCache)
+        outputCache = dotProduct(inputs, weights)
+        return activationFunction(outputCache)
     }
     
 }
@@ -140,14 +133,6 @@ class Layer {
     var neurons: [Neuron]
     var outputCache: [Double]
     
-    // for future use in deserializing networks
-    init(previousLayer: Layer? = nil, neurons: [Neuron] = [Neuron]()) {
-        self.previousLayer = previousLayer
-        self.neurons = neurons
-        self.outputCache = Array<Double>(repeating: 0.0, count: neurons.count)
-    }
-    
-    // main init
     init(previousLayer: Layer? = nil, numNeurons: Int, activationFunction: @escaping (Double) -> Double, derivativeActivationFunction: @escaping (Double)-> Double, learningRate: Double) {
         self.previousLayer = previousLayer
         self.neurons = Array<Neuron>()
@@ -169,7 +154,7 @@ class Layer {
     // should only be called on an output layer
     func calculateDeltasForOutputLayer(expected: [Double]) {
         for n in 0..<neurons.count {
-            neurons[n].delta = neurons[n].derivativeActivationFunction( neurons[n].inputCache) * (expected[n] - outputCache[n])
+            neurons[n].delta = neurons[n].derivativeActivationFunction(neurons[n].outputCache) * (expected[n] - outputCache[n])
         }
     }
     
@@ -179,11 +164,9 @@ class Layer {
             let nextWeights = nextLayer.neurons.map { $0.weights[index] }
             let nextDeltas = nextLayer.neurons.map { $0.delta }
             let sumOfWeightsXDeltas = dotProduct(nextWeights, nextDeltas)
-            neuron.delta = neuron.derivativeActivationFunction( neuron.inputCache) * sumOfWeightsXDeltas
+            neuron.delta = neuron.derivativeActivationFunction(neuron.outputCache) * sumOfWeightsXDeltas
         }
     }
-    
-    
 }
 
 /// Represents an entire neural network. From largest to smallest we go
@@ -191,7 +174,7 @@ class Layer {
 class Network {
     var layers: [Layer]
     
-    init(layerStructure:[Int], activationFunction: @escaping (Double) -> Double = sigmoid, derivativeActivationFunction: @escaping (Double) -> Double = derivativeSigmoid, learningRate: Double = 0.25) {
+    init(layerStructure:[Int], activationFunction: @escaping (Double) -> Double = sigmoid, derivativeActivationFunction: @escaping (Double) -> Double = derivativeSigmoid, learningRate: Double) {
         if (layerStructure.count < 3) {
             print("Error: Should be at least 3 layers (1 input, 1 hidden, 1 output)")
         }
@@ -214,7 +197,7 @@ class Network {
     
     /// Figure out each neuron's changes based on the errors
     /// of the output versus the expected outcome
-    func backPropagate(expected: [Double]) {
+    func backpropagate(expected: [Double]) {
         //calculate delta for output layer neurons
         layers.last?.calculateDeltasForOutputLayer(expected: expected)
         //calculate delta for prior layers
@@ -223,14 +206,14 @@ class Network {
         }
     }
     
-    /// backPropagate() doesn't actually change any weights
-    /// this function uses the deltas calculated in backPropagate()
+    /// backpropagate() doesn't actually change any weights
+    /// this function uses the deltas calculated in backpropagate()
     /// to actually make changes to the weights
     func updateWeights() {
-        for layer in layers {
+        for layer in layers.dropFirst() { // skip input layer
             for neuron in layer.neurons {
                 for w in 0..<neuron.weights.count {
-                    neuron.weights[w] = neuron.weights[w] + (neuron.learningRate * (layer.previousLayer?.outputCache[w])!  * neuron.delta)
+                    neuron.weights[w] = neuron.weights[w] + (neuron.learningRate * (layer.previousLayer?.outputCache[w])! * neuron.delta)
                 }
             }
         }
@@ -238,17 +221,17 @@ class Network {
     
     /// train() uses the results of outputs() run over
     /// many *inputs* and compared against *expecteds* to feed
-    /// backPropagate() and updateWeights()
+    /// backpropagate() and updateWeights()
     func train(inputs:[[Double]], expecteds:[[Double]], printError:Bool = false, threshold:Double? = nil) {
         for (location, xs) in inputs.enumerated() {
             let ys = expecteds[location]
             let outs = outputs(input: xs)
             if (printError) {
-                let diff = sub(x: outs, y: ys)
-                let error = sqrt(sum(x: mul(x: diff, y: diff)))
+                let diff = sub(outs, ys)
+                let error = sqrt(sum(mul(diff, diff)))
                 print("\(error) error in run \(location)")
             }
-            backPropagate(expected: ys)
+            backpropagate(expected: ys)
             updateWeights()
         }
     }
@@ -286,7 +269,7 @@ func normalizeByColumnMax( dataset:inout [[Double]]) {
 
 // MARK: Iris Test
 
-var network: Network = Network(layerStructure: [4,5,3], learningRate: 0.3)
+var network: Network = Network(layerStructure: [4,6,3], learningRate: 0.3)
 var irisParameters: [[Double]] = [[Double]]()
 var irisClassifications: [[Double]] = [[Double]]()
 var irisSpecies: [String] = [String]()
