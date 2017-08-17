@@ -255,31 +255,28 @@ class Network {
 /// MARK: Normalization
 
 /// assumes all rows are of equal length
-/// and divide each column by its max throughout the data set
-/// for that column
-func normalizeByColumnMax( dataset:inout [[Double]]) {
+/// and feature scale each column to be in the range 0 – 1
+func normalizeByFeatureScaling(dataset: inout [[Double]]) {
     for colNum in 0..<dataset[0].count {
         let column = dataset.map { $0[colNum] }
         let maximum = column.max()!
+        let minimum = column.min()!
         for rowNum in 0..<dataset.count {
-            dataset[rowNum][colNum] = dataset[rowNum][colNum] / maximum
+            dataset[rowNum][colNum] = (dataset[rowNum][colNum] - minimum) / (maximum - minimum)
         }
     }
 }
 
 // MARK: Iris Test
 
-var network: Network = Network(layerStructure: [4,6,3], learningRate: 0.3)
-var irisParameters: [[Double]] = [[Double]]()
-var irisClassifications: [[Double]] = [[Double]]()
-var irisSpecies: [String] = [String]()
-
-func parseIrisCSV() {
-    let myBundle = Bundle.main
-    let urlpath = myBundle.path(forResource: "iris", ofType: "csv")
+func parseIrisCSV() -> (parameters: [[Double]], classifications: [[Double]], species: [String]) {
+    let urlpath = Bundle.main.path(forResource: "iris", ofType: "csv")
     let url = URL(fileURLWithPath: urlpath!)
     let csv = try! String.init(contentsOf: url)
     let lines = csv.components(separatedBy: "\n")
+    var irisParameters: [[Double]] = [[Double]]()
+    var irisClassifications: [[Double]] = [[Double]]()
+    var irisSpecies: [String] = [String]()
     
     let shuffledLines = lines.shuffled()
     for line in shuffledLines {
@@ -297,10 +294,15 @@ func parseIrisCSV() {
         }
         irisSpecies.append(species)
     }
-    normalizeByColumnMax(dataset: &irisParameters)
+    normalizeByFeatureScaling(dataset: &irisParameters)
+    return (irisParameters, irisClassifications, irisSpecies)
 }
 
-func interpretOutput(output: [Double]) -> String {
+let (irisParameters, irisClassifications, irisSpecies) = parseIrisCSV()
+
+var irisNetwork: Network = Network(layerStructure: [4,6,3], learningRate: 0.3)
+
+func irisInterpretOutput(output: [Double]) -> String {
     if output.max()! == output[0] {
         return "Iris-setosa"
     } else if output.max()! == output[1] {
@@ -310,20 +312,18 @@ func interpretOutput(output: [Double]) -> String {
     }
 }
 
-// Put setup code here. This method is called before the invocation of each test method in the class.
-parseIrisCSV()
 // train over first 140 irises in data set 20 times
-let trainers = Array(irisParameters[0..<140])
-let trainersCorrects = Array(irisClassifications[0..<140])
+let irisTrainers = Array(irisParameters[0..<140])
+let irisTrainersCorrects = Array(irisClassifications[0..<140])
 for _ in 0..<20 {
-    network.train(inputs: trainers, expecteds: trainersCorrects, printError: false)
+    irisNetwork.train(inputs: irisTrainers, expecteds: irisTrainersCorrects, printError: false)
 }
 
 // test over the last 10 of the irses in the data set
-let testers = Array(irisParameters[140..<150])
-let testersCorrects = Array(irisSpecies[140..<150])
-let results = network.validate(inputs: testers, expecteds: testersCorrects, interpretOutput: interpretOutput)
-print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
+let irisTesters = Array(irisParameters[140..<150])
+let irisTestersCorrects = Array(irisSpecies[140..<150])
+let irisResults = irisNetwork.validate(inputs: irisTesters, expecteds: irisTestersCorrects, interpretOutput: irisInterpretOutput)
+print("\(irisResults.correct) correct of \(irisResults.total) = \(irisResults.percentage * 100)%")
 
 /// Wine Test
 
@@ -358,7 +358,7 @@ print("\(results.correct) correct of \(results.total) = \(results.percentage * 1
 //        }
 //        wineCultivars.append(species)
 //    }
-//    normalizeByColumnMax(dataset: &wineParameters)
+//    normalizeByFeatureScaling(dataset: &wineParameters)
 //    wineSamples = Array(wineParameters.dropFirst(150))
 //    wineCultivars = Array(wineCultivars.dropFirst(150))
 //    wineParameters = Array(wineParameters.dropLast(28))
