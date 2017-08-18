@@ -269,119 +269,118 @@ func normalizeByFeatureScaling(dataset: inout [[Double]]) {
 
 // MARK: Iris Test
 
-func parseIrisCSV() -> (parameters: [[Double]], classifications: [[Double]], species: [String]) {
-    let urlpath = Bundle.main.path(forResource: "iris", ofType: "csv")
-    let url = URL(fileURLWithPath: urlpath!)
-    let csv = try! String.init(contentsOf: url)
-    let lines = csv.components(separatedBy: "\n")
-    var irisParameters: [[Double]] = [[Double]]()
-    var irisClassifications: [[Double]] = [[Double]]()
-    var irisSpecies: [String] = [String]()
-    
-    let shuffledLines = lines.shuffled()
-    for line in shuffledLines {
-        if line == "" { continue }
-        let items = line.components(separatedBy: ",")
-        let parameters = items[0...3].map{ Double($0)! }
-        irisParameters.append(parameters)
-        let species = items[4]
-        if species == "Iris-setosa" {
-            irisClassifications.append([1.0, 0.0, 0.0])
-        } else if species == "Iris-versicolor" {
-            irisClassifications.append([0.0, 1.0, 0.0])
-        } else {
-            irisClassifications.append([0.0, 0.0, 1.0])
-        }
-        irisSpecies.append(species)
-    }
-    normalizeByFeatureScaling(dataset: &irisParameters)
-    return (irisParameters, irisClassifications, irisSpecies)
-}
-
-let (irisParameters, irisClassifications, irisSpecies) = parseIrisCSV()
-
-var irisNetwork: Network = Network(layerStructure: [4,6,3], learningRate: 0.3)
-
-func irisInterpretOutput(output: [Double]) -> String {
-    if output.max()! == output[0] {
-        return "Iris-setosa"
-    } else if output.max()! == output[1] {
-        return "Iris-versicolor"
-    } else {
-        return "Iris-virginica"
-    }
-}
-
-// train over first 140 irises in data set 20 times
-let irisTrainers = Array(irisParameters[0..<140])
-let irisTrainersCorrects = Array(irisClassifications[0..<140])
-for _ in 0..<20 {
-    irisNetwork.train(inputs: irisTrainers, expecteds: irisTrainersCorrects, printError: false)
-}
-
-// test over the last 10 of the irses in the data set
-let irisTesters = Array(irisParameters[140..<150])
-let irisTestersCorrects = Array(irisSpecies[140..<150])
-let irisResults = irisNetwork.validate(inputs: irisTesters, expecteds: irisTestersCorrects, interpretOutput: irisInterpretOutput)
-print("\(irisResults.correct) correct of \(irisResults.total) = \(irisResults.percentage * 100)%")
-
-/// Wine Test
-
-//var network: Network = Network(layerStructure: [13,7,3], learningRate: 7.0)
-//// for training
-//var wineParameters: [[Double]] = [[Double]]()
-//var wineClassifications: [[Double]] = [[Double]]()
-//// for testing/validation
-//var wineSamples: [[Double]] = [[Double]]()
-//var wineCultivars: [Int] = [Int]()
-//
-//func parseWineCSV() {
-//    let myBundle = Bundle.main
-//    let urlpath = myBundle.path(forResource: "wine", ofType: "csv")
+//func parseIrisCSV() -> (parameters: [[Double]], classifications: [[Double]], species: [String]) {
+//    let urlpath = Bundle.main.path(forResource: "iris", ofType: "csv")
 //    let url = URL(fileURLWithPath: urlpath!)
 //    let csv = try! String.init(contentsOf: url)
 //    let lines = csv.components(separatedBy: "\n")
+//    var irisParameters: [[Double]] = [[Double]]()
+//    var irisClassifications: [[Double]] = [[Double]]()
+//    var irisSpecies: [String] = [String]()
 //
 //    let shuffledLines = lines.shuffled()
 //    for line in shuffledLines {
-//        if line == "" { continue }
+//        if line == "" { continue } // skip blank lines
 //        let items = line.components(separatedBy: ",")
-//        let parameters = items[1...13].map{ Double($0)! }
-//        wineParameters.append(parameters)
-//        let species = Int(items[0])!
-//        if species == 1 {
-//            wineClassifications.append([1.0, 0.0, 0.0])
-//        } else if species == 2 {
-//            wineClassifications.append([0.0, 1.0, 0.0])
+//        let parameters = items[0...3].map{ Double($0)! }
+//        irisParameters.append(parameters)
+//        let species = items[4]
+//        if species == "Iris-setosa" {
+//            irisClassifications.append([1.0, 0.0, 0.0])
+//        } else if species == "Iris-versicolor" {
+//            irisClassifications.append([0.0, 1.0, 0.0])
 //        } else {
-//            wineClassifications.append([0.0, 0.0, 1.0])
+//            irisClassifications.append([0.0, 0.0, 1.0])
 //        }
-//        wineCultivars.append(species)
+//        irisSpecies.append(species)
 //    }
-//    normalizeByFeatureScaling(dataset: &wineParameters)
-//    wineSamples = Array(wineParameters.dropFirst(150))
-//    wineCultivars = Array(wineCultivars.dropFirst(150))
-//    wineParameters = Array(wineParameters.dropLast(28))
+//    normalizeByFeatureScaling(dataset: &irisParameters)
+//    return (irisParameters, irisClassifications, irisSpecies)
 //}
 //
-//func interpretOutput(output: [Double]) -> Int {
+//let (irisParameters, irisClassifications, irisSpecies) = parseIrisCSV()
+//
+//let irisNetwork: Network = Network(layerStructure: [4, 6, 3], learningRate: 0.3)
+//
+//func irisInterpretOutput(output: [Double]) -> String {
 //    if output.max()! == output[0] {
-//        return 1
+//        return "Iris-setosa"
 //    } else if output.max()! == output[1] {
-//        return 2
+//        return "Iris-versicolor"
 //    } else {
-//        return 3
+//        return "Iris-virginica"
 //    }
 //}
 //
-//parseWineCSV()
-//// train over entire data set 5 times
-//for _ in 0..<5 {
-//    network.train(inputs: wineParameters, expecteds: wineClassifications, printError: false)
+//// train over first 140 irises in data set 20 times
+//let irisTrainers = Array(irisParameters[0..<140])
+//let irisTrainersCorrects = Array(irisClassifications[0..<140])
+//for _ in 0..<20 {
+//    irisNetwork.train(inputs: irisTrainers, expecteds: irisTrainersCorrects, printError: false)
 //}
 //
-//let results = network.validate(inputs: wineSamples, expecteds: wineCultivars, interpretOutput: interpretOutput)
-//print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
+//// test over the last 10 of the irses in the data set
+//let irisTesters = Array(irisParameters[140..<150])
+//let irisTestersCorrects = Array(irisSpecies[140..<150])
+//let irisResults = irisNetwork.validate(inputs: irisTesters, expecteds: irisTestersCorrects, interpretOutput: irisInterpretOutput)
+//print("\(irisResults.correct) correct of \(irisResults.total) = \(irisResults.percentage * 100)%")
+
+/// Wine Test
+
+func parseWineCSV() -> (parameters: [[Double]], classifications: [[Double]], species: [Int]) {
+    let urlpath = Bundle.main.path(forResource: "wine", ofType: "csv")
+    let url = URL(fileURLWithPath: urlpath!)
+    let csv = try! String.init(contentsOf: url)
+    let lines = csv.components(separatedBy: "\n")
+    var wineParameters: [[Double]] = [[Double]]()
+    var wineClassifications: [[Double]] = [[Double]]()
+    var wineSpecies: [Int] = [Int]()
+
+    let shuffledLines = lines.shuffled()
+    for line in shuffledLines {
+        if line == "" { continue } // skip blank lines
+        let items = line.components(separatedBy: ",")
+        let parameters = items[1...13].map{ Double($0)! }
+        wineParameters.append(parameters)
+        let species = Int(items[0])!
+        if species == 1 {
+            wineClassifications.append([1.0, 0.0, 0.0])
+        } else if species == 2 {
+            wineClassifications.append([0.0, 1.0, 0.0])
+        } else {
+            wineClassifications.append([0.0, 0.0, 1.0])
+        }
+        wineSpecies.append(species)
+    }
+    normalizeByFeatureScaling(dataset: &wineParameters)
+    return (wineParameters, wineClassifications, wineSpecies)
+}
+
+let (wineParameters, wineClassifications, wineSpecies) = parseWineCSV()
+
+let wineNetwork: Network = Network(layerStructure: [13,7,3], learningRate: 0.9)
+
+func wineInterpretOutput(output: [Double]) -> Int {
+    if output.max()! == output[0] {
+        return 1
+    } else if output.max()! == output[1] {
+        return 2
+    } else {
+        return 3
+    }
+}
+
+// train over the first 150 samples 5 times
+let wineTrainers = Array(wineParameters.dropLast(28))
+let wineTrainersCorrects = Array(wineClassifications.dropLast(28))
+for _ in 0..<5 {
+    wineNetwork.train(inputs: wineTrainers, expecteds: wineTrainersCorrects, printError: false)
+}
+
+let wineTesters = Array(wineParameters.dropFirst(150))
+let wineTestersCorrects = Array(wineSpecies.dropFirst(150))
+let results = wineNetwork.validate(inputs: wineTesters, expecteds: wineTestersCorrects, interpretOutput: wineInterpretOutput)
+print("\(results.correct) correct of \(results.total) = \(results.percentage * 100)%")
 
 //: [Next](@next)
 
