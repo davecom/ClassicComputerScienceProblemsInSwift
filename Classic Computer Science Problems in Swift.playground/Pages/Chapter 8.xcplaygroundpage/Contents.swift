@@ -120,18 +120,18 @@ func tspPaths<T>(_ permutations: [[T]]) -> [[T]] {
 print(tspPaths(testPerms))
 
 func solveTSP<T>(cities: [T], distances: [T: [T: Int]]) -> (solution: [T], distance: Int) {
-    let possiblePaths = tspPaths(allPermutations(cities))
-    var bestPath: [T] = []
-    var minDistance: Int = Int.max
+    let possiblePaths = tspPaths(allPermutations(cities)) // all potential paths
+    var bestPath: [T] = [] // shortest path by distance
+    var minDistance: Int = Int.max // distance of the shortest path
     for path in possiblePaths {
-        if path.count < 2 { continue }
+        if path.count < 2 { continue } // must be at least one city pair to calculate
         var distance = 0
         var last = path.first! // we know there is one becuase of above line
-        for next in path[1..<path.count] {
+        for next in path[1..<path.count] { // add up all pair distances
             distance += distances[last]![next]!
             last = next
         }
-        if distance < minDistance {
+        if distance < minDistance { // found a new best path
             minDistance = distance
             bestPath = path
         }
