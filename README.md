@@ -5,7 +5,7 @@ This is a work-in-progress copy of the Xcode Playground to accompany the forthco
 
 ## Versioning
 
-The Playground is compatible with Swift 3.1 (Xcode 8.3). The final version of the book will include updated source code compatible with Swift 4.
+The Playground is compatible with Swift 4 (Xcode 9).
 
 ## License
 
