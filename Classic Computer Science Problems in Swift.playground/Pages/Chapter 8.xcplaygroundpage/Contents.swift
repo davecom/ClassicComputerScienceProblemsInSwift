@@ -142,12 +142,146 @@ func solveTSP<T>(cities: [T], distances: [T: [T: Int]]) -> (solution: [T], dista
 let vtTSP = solveTSP(cities: vtCities, distances: vtDistances)
 print("The shortest path is \(vtTSP.solution) in \(vtTSP.distance) miles.")
 
-//func dog(test: inout [String]) {
-//    test.append("hello")
-//
-//}
+/// Phone Number Mnemonics
 
-// City 0
+let phoneMapping: [Character: [Character]] = ["1": ["1"], "2": ["a", "b", "c"], "3": ["d", "e", "f"], "4": ["g", "h", "i"], "5": ["j", "k", "l"], "6": ["m", "n", "o"], "7": ["p", "q", "r", "s"], "8": ["t", "u", "v"], "9": ["w", "x", "y", "z"], "0": ["0"]]
 
+
+// return all of the possible characters combos, given a mapping, for a given number
+func stringToPossibilities(_ s: String, mapping: [Character: [Character]]) -> [[Character]]{
+    let possibilities = s.characters.flatMap{ mapping[$0] }
+    print(possibilities)
+    return combineAllPossibilities(possibilities)
+}
+
+// takes a set of possible characters for each position and finds all possible permutations
+func combineAllPossibilities(_ possibilities: [[Character]]) -> [[Character]] {
+    guard let possibility = possibilities.first else { return [[]] }
+    var permutations: [[Character]] = possibility.map { [$0] } // turn each into an array
+    for possibility in possibilities[1..<possibilities.count] where possibility != [] {
+        let toRemove = permutations.count // temp
+        for permutation in permutations {
+            for c in possibility { // try adding every letter
+                var newPermutation: [Character] = permutation // need a mutable copy
+                newPermutation.append(c) // add character on the end
+                permutations.append(newPermutation) // new combo ready
+            }
+        }
+        permutations.removeFirst(toRemove) // remove combos missing new last letter
+    }
+    return permutations
+}
+
+let permutations = stringToPossibilities("1440787", mapping: phoneMapping)
+
+/// Tic-tac-toe
+
+enum Piece: String {
+    case X = "X"
+    case O = "O"
+    case E = " "
+    var opposite: Piece {
+        switch self {
+        case .X:
+            return .O
+        case .O:
+            return .X
+        case .E:
+            return .E
+        }
+    }
+}
+
+// a move is an integer 0-9 indicating a place to put a piece
+typealias Move = Int
+
+struct Board {
+    let position: [Piece]
+    let turn: Piece
+    let lastMove: Move
+    
+    // the legal moves in a position are all of the empty squares
+    var legalMoves: [Move] {
+        return position.indices.filter { position[$0] == .E }
+    }
+    
+    // by default the board is empty and X goes first
+    // lastMove being -1 is a marker of a start position
+    init(position: [Piece] = [.E, .E, .E, .E, .E, .E, .E, .E, .E], turn: Piece = .X, lastMove: Int = -1) {
+        self.position = position
+        self.turn = turn
+        self.lastMove = lastMove
+    }
+    
+    // location can be 0-8, indicating where to move
+    // return a new board with the move played
+    func move(_ location: Move) -> Board {
+        var tempPosition = position
+        tempPosition[location] = turn
+        return Board(position: tempPosition, turn: turn.opposite, lastMove: location)
+    }
+    
+    var isWin: Bool {
+        return
+            position[0] == position[1] && position [0] == position[2] && position[0] != .E || // row 0
+                position[3] == position[4] && position[3] == position [5] && position[3] != .E || // row 1
+                position[6] == position[7] && position[6] == position[8] && position[6] != .E || // row 2
+                position[0] == position[3] && position[0] == position[6] && position[0] != .E || // col 0
+                position[1] == position[4] && position[1] == position[7] && position[1] != .E || // col 1
+                position[2] == position[5] && position[2] == position[8] && position[2] != .E || // col 2
+                position[0] == position[4] && position[0] == position[8] && position[0] != .E || // diag 0
+                position[2] == position[4] && position[2] == position[6] && position[2] != .E // diag 1
+        
+    }
+    
+    var isDraw: Bool {
+        return !isWin && legalMoves.count == 0
+    }
+}
+
+func minimax(_ board: Board, maximizing: Bool) -> (eval: Int, bestMove: Move) {
+    if board.isWin { return (1, board.lastMove) }
+    else if board.isDraw { return (0, board.lastMove) }
+    
+    if maximizing {
+        var bestEval: (eval: Int, bestMove: Move) = (Int.min, -1)
+        for move in board.legalMoves {
+            let result = minimax(board.move(move), maximizing: false)
+            if result.eval > bestEval.eval { bestEval = result }
+        }
+        return bestEval
+    } else { // minimizing
+        var worstEval: (eval: Int, bestMove: Move) = (Int.max, -1)
+        for move in board.legalMoves {
+            let result = minimax(board.move(move), maximizing: true)
+            if result.eval < worstEval.eval { worstEval = result }
+        }
+        return worstEval
+    }
+}
+
+// win in 1 move
+let toWinEasyPosition: [Piece] = [.X, .O, .X,
+                                  .X, .E, .O,
+                                  .E, .E, .O]
+let testBoard1: Board = Board(position: toWinEasyPosition, turn: .X, lastMove: 8)
+let answer1 = minimax(testBoard1, maximizing: true)
+print(answer1.bestMove)
+
+// must block O's win
+let toBlockPosition: [Piece] = [.X, .E, .E,
+                                .E, .E, .O,
+                                .E, .X, .O]
+let testBoard2: Board = Board(position: toBlockPosition, turn: .X, lastMove: 8)
+let answer2 = minimax(testBoard2, maximizing: true)
+print(answer2.bestMove)
+
+// find the best move to win in 2 moves
+let toWinHardPosition: [Piece] = [.X, .E, .E,
+                                  .E, .E, .O,
+                                  .O, .X, .E]
+let testBoard3: Board = Board(position: toWinHardPosition, turn: .X, lastMove: 6)
+let answer3 = minimax(testBoard3, maximizing: true)
+print(answer3.bestMove)
 //: [Next](@next)
 
