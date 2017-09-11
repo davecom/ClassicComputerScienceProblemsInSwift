@@ -102,7 +102,7 @@ for _ in 0..<1000 {
 }
 let elapsedTime2 = CFAbsoluteTimeGetCurrent() - startTime2*/
 
-//generic versions for dictionary
+/// Generic Versions
 
 func linearContains<T: Equatable>(_ array: [T], item: T) -> Bool {
     for element in array where item == element {
@@ -110,10 +110,6 @@ func linearContains<T: Equatable>(_ array: [T], item: T) -> Bool {
     }
     return false
 }
-
-//linearContains(gene, item: ac1)
-
-gene.sort(by: <)
 
 func binaryContains<T: Comparable>(_ array: [T], item: T) -> Bool {
     var low = 0

@@ -167,9 +167,9 @@ func calculatePi(nTerms: UInt) -> Double {
     var operation: Double = -1
     var pi: Double = 0
     for _ in 0..<nTerms {
-        pi = pi + operation * (numerator / denominator)
+        pi += operation * (numerator / denominator)
         denominator += 2
-        operation = operation * -1
+        operation *= -1
     }
     return abs(pi)
 }
@@ -179,7 +179,7 @@ calculatePi(nTerms: 1000)
 
 /// The Towers of Hanoi
 
-/// Implements a stack - helper class that uses an array internally.
+/// Implements a stack - LIFO helper class that uses an array internally.
 public class Stack<T>: CustomStringConvertible {
     private var container: [T] = [T]()
     public func push(_ thing: T) { container.append(thing) }
