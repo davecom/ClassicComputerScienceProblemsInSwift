@@ -191,7 +191,7 @@ public final class KMeans<PointType: DataPoint> {
         }
     }
     
-    public func run(maxIterations: UInt = UInt.max) -> [Cluster] {
+    public func run(maxIterations: UInt = 100) -> [Cluster] {
         for iteration in 0..<maxIterations {
             clusters.forEach{ $0.points.removeAll() } // clear all clusters
             assignClusters() // find clusters each is closest to - assign

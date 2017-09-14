@@ -61,7 +61,7 @@ open class Constraint <V: Hashable, D> {
         return true
     }
     /// The variables that make up the constraint.
-    var vars: [V] {return []}
+    var vars: [V] { return [] }
 }
 
 /// the meat of the backtrack algorithm - a recursive depth first search
@@ -109,7 +109,7 @@ func isConsistent<V, D>(variable: V, value: D, assignment: Dictionary<V, D>, csp
 final class MapColoringConstraint: Constraint <String, String> {
     let place1: String
     let place2: String
-    final override var vars: [String] {return [place1, place2]}
+    final override var vars: [String] { return [place1, place2] }
     
     init(place1: String, place2: String) {
         self.place1 = place1
@@ -127,8 +127,7 @@ final class MapColoringConstraint: Constraint <String, String> {
     }
 }
 
-let variables: [String] = ["Western Australia", "Northern Territory",
-                           "South Australia", "Queensland", "New South Wales", "Victoria", "Tasmania"]
+let variables: [String] = ["Western Australia", "Northern Territory", "South Australia", "Queensland", "New South Wales", "Victoria", "Tasmania"]
 var domains = Dictionary<String, [String]>()
 for variable in variables {
     domains[variable] = ["r", "g", "b"]
@@ -154,7 +153,7 @@ if let solution = backtrackingSearch(csp: csp) {
 
 final class QueensConstraint: Constraint <Int, Int> {
     let columns: [Int]
-    final override var vars: [Int] {return columns}
+    final override var vars: [Int] { return columns }
     
     init(columns: [Int]) {
         self.columns = columns
@@ -264,7 +263,7 @@ func generateDomain(word: String, grid: Grid) -> [[GridLocation]] {
 
 final class WordSearchConstraint: Constraint <String, [GridLocation]> {
     let words: [String]
-    final override var vars: [String] {return words}
+    final override var vars: [String] { return words }
     
     init(words: [String]) {
         self.words = words
@@ -279,33 +278,34 @@ final class WordSearchConstraint: Constraint <String, [GridLocation]> {
     }
 }
 
-// Commented out because it takes a long time to execute! Uncomment all of the following
+// May be commented out because it takes a long time to execute!
+// Uncomment all of the following
 // lines to see the word search in action.
 
-//let words: [String] = ["MATTHEW", "JOE", "MARY", "SARAH", "SALLY"]
-//var locations = Dictionary<String, [[GridLocation]]>()
-//for word in words {
-//    locations[word] = generateDomain(word: word, grid: grid)
-//}
-//
-//var wordsearch = CSP<String, [GridLocation]>(variables: words, domains: locations)
-//wordsearch.addConstraint(WordSearchConstraint(words: words))
-//if let solution = backtrackingSearch(csp: wordsearch) {
-//    for (word, gridLocations) in solution {
-//        let gridLocs = arc4random_uniform(2) > 0 ? gridLocations : gridLocations.reversed() // randomly reverse word half the time
-//        for (index, letter) in word.characters.enumerated() {
-//            let (row, col) = (gridLocs[index].row, gridLocations[index].col)
-//            grid[row][col] = letter
-//        }
-//    }
-//    printGrid(grid)
-//} else { print("Couldn't find solution!") }
+let words: [String] = ["MATTHEW", "JOE", "MARY", "SARAH", "SALLY"]
+var locations = Dictionary<String, [[GridLocation]]>()
+for word in words {
+    locations[word] = generateDomain(word: word, grid: grid)
+}
+
+var wordsearch = CSP<String, [GridLocation]>(variables: words, domains: locations)
+wordsearch.addConstraint(WordSearchConstraint(words: words))
+if let solution = backtrackingSearch(csp: wordsearch) {
+    for (word, gridLocations) in solution {
+        let gridLocs = arc4random_uniform(2) > 0 ? gridLocations : gridLocations.reversed() // randomly reverse word half the time
+        for (index, letter) in word.characters.enumerated() {
+            let (row, col) = (gridLocs[index].row, gridLocations[index].col)
+            grid[row][col] = letter
+        }
+    }
+    printGrid(grid)
+} else { print("Couldn't find solution!") }
 
 /// ###SEND+MORE=MONEY
 
 final class SendMoreMoneyConstraint: Constraint <Character, Int> {
     let letters: [Character]
-    final override var vars: [Character] {return letters}
+    final override var vars: [Character] { return letters }
     init(variables: [Character]) {
         letters = variables
     }
@@ -324,13 +324,10 @@ final class SendMoreMoneyConstraint: Constraint <Character, Int> {
                 let more: Int = m * 1000 + o * 100 + r * 10 + e
                 let money: Int = m * 10000 + o * 1000 + n * 100 + e * 10 + y
                 if (send + more) == money {
-                    return true
-                } else {
-                    return false
+                    return true // answer found
                 }
-            } else {
-                return false
             }
+            return false // this full assignment doesn't work
         }
         
         // until we have all of the variables assigned, the assignment is valid
