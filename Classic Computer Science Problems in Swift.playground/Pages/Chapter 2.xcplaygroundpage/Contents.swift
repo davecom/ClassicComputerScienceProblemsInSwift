@@ -265,11 +265,11 @@ func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
 
 func nodeToPath<StateType>(_ node: Node<StateType>) -> [StateType] {
     var path: [StateType] = [node.state]
-    var currentNode = node.parent
+    var node = node
     // work backwards from end to front
-    while currentNode != nil {
-        path.insert(currentNode!.state, at: 0)
-        currentNode = currentNode!.parent
+    while let currentNode = node.parent {
+        path.insert(currentNode.state, at: 0)
+        node = currentNode
     }
     return path
 }
