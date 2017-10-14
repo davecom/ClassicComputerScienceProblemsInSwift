@@ -20,6 +20,11 @@ The Playground is compatible with Swift 4 (Xcode 9).
 - [SwiftGraph](https://github.com/davecom/SwiftGraph)
 - [SwiftCSP](https://github.com/davecom/SwiftCSP)
 
+### Free Content Based on the Book
+
+- [Article: Solving Mazes with Swift](http://freecontent.manning.com/solving-mazes-with-swift/)
+- [Slides: A* Search in Swift: Navigating a Maze](http://freecontent.manning.com/slideshare-a-search-in-swift-navigating-a-maze/)
+
 ### Miscellaneous
 
 - [A Reimplementation of the Book in C++ (not by the author)](https://github.com/araya-andres/classic_computer_sci)
