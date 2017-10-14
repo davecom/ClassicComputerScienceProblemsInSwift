@@ -7,6 +7,23 @@ This is a work-in-progress copy of the Xcode Playground to accompany the forthco
 
 The Playground is compatible with Swift 4 (Xcode 9).
 
+## Links
+
+### Get the Book
+
+- [Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift)
+- [Amazon](http://amzn.to/2xG6nlF)
+
+### Open Source Projects Mentioned in the Book
+
+- [SwiftPriorityQueue](https://github.com/davecom/SwiftPriorityQueue)
+- [SwiftGraph](https://github.com/davecom/SwiftGraph)
+- [SwiftCSP](https://github.com/davecom/SwiftCSP)
+
+### Miscellaneous
+
+- [A Reimplementation of the Book in C++ (not by the author)](https://github.com/araya-andres/classic_computer_sci)
+
 ## License
 
 The source code in this repository is licensed under the Apache License. See `LICENSE`.
