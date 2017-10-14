@@ -20,6 +20,7 @@ The Playground is compatible with Swift 4 (Xcode 9).
 - [SwiftPriorityQueue](https://github.com/davecom/SwiftPriorityQueue)
 - [SwiftGraph](https://github.com/davecom/SwiftGraph)
 - [SwiftCSP](https://github.com/davecom/SwiftCSP)
+- [SwiftSimpleNeuralNetwork](https://github.com/davecom/SwiftSimpleNeuralNetwork)
 
 ### Free Content Based on the Book
 
