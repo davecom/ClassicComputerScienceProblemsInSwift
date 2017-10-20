@@ -141,68 +141,82 @@ enum Cell: Character {
     case Path = "P"
 }
 
-typealias Maze = [[Cell]]
-srand48(time(nil)) // seed random number generator
-
-// sparseness is the approximate percentage of walls represented
-// as a number between 0 and 1
-func generateMaze(rows: Int, columns: Int, sparseness: Double) -> Maze {
-    // initialize maze full of empty spaces
-    var maze: Maze = Maze(repeating: [Cell](repeating: .Empty, count: columns), count: rows)
-    // put walls in
-    for row in 0..<rows {
-        for col in 0..<columns {
-            if drand48() < sparseness { //chance of wall
-                maze[row][col] = .Blocked
-            }
-        }
-    }
-    return maze
-}
-
-func printMaze(_ maze: Maze) {
-    for i in 0..<maze.count {
-        print(String(maze[i].map{ $0.rawValue }))
-    }
-}
-
-var maze = generateMaze(rows: 10, columns: 10, sparseness: 0.2)
-printMaze(maze)
-
 struct MazeLocation: Hashable {
     let row: Int
     let col: Int
     var hashValue: Int { return row.hashValue ^ col.hashValue }
+    var up: MazeLocation {
+        return MazeLocation(row: row + 1, col: col)
+    }
+    var down: MazeLocation {
+        return MazeLocation(row: row - 1, col: col)
+    }
+    var left: MazeLocation {
+        return MazeLocation(row: row, col: col - 1)
+    }
+    var right: MazeLocation {
+        return MazeLocation(row: row, col: col + 1)
+    }
 }
 
 func == (lhs: MazeLocation, rhs: MazeLocation) -> Bool {
     return lhs.row == rhs.row && lhs.col == rhs.col
 }
 
-let goal = MazeLocation(row: 9, col: 9)
-func goalTest(ml: MazeLocation) -> Bool {
-    return ml == goal
+class Maze {
+    var rows: [[Cell]]
+
+    init(rows: Int, columns: Int, sparseness: Double) {
+        // initialize maze full of empty spaces
+        self.rows = [[Cell]](repeating: [Cell](repeating: .Empty, count: columns), count: rows)
+        srand48(time(nil)) // seed random number generator
+        // put walls in
+        for row in 0..<rows {
+            for col in 0..<columns {
+                if drand48() < sparseness { //chance of wall
+                    self.rows[row][col] = .Blocked
+                }
+            }
+        }
+    }
+
+    private init(rows: [[Cell]]) {
+        self.rows = rows
+    }
+
+    func isClear(_ location: MazeLocation) -> Bool {
+        guard location.row >= 0 && location.col >= 0 && location.row < rows.count && location.col < rows[0].count else { return false }
+        return rows[location.row][location.col] != .Blocked
+    }
+
+    func successors(location: MazeLocation) -> [MazeLocation] {
+        //no  diagonals
+        return [location.up, location.down, location.left, location.right].filter({ isClear($0) })
+    }
+
+    func marked(path: [MazeLocation], start: MazeLocation, goal: MazeLocation) -> Maze {
+        let maze = Maze(rows: rows)
+        for location in path {
+            maze.rows[location.row][location.col] = .Path
+        }
+        maze.rows[start.row][start.col] = .Start
+        maze.rows[goal.row][goal.col] = .Goal
+        return maze
+    }
 }
 
-func successorsForMaze(_ maze: Maze) -> (MazeLocation) -> [MazeLocation] {
-func successors(ml: MazeLocation) -> [MazeLocation] { //no  diagonals
-    var newMLs: [MazeLocation] = [MazeLocation]()
-    if (ml.row + 1 < maze.count) && (maze[ml.row + 1][ml.col] != .Blocked) {
-        newMLs.append(MazeLocation(row: ml.row + 1, col: ml.col))
+func printMaze(_ maze: Maze) {
+    for i in 0..<maze.rows.count {
+        print(String(maze.rows[i].map{ $0.rawValue }))
     }
-    if (ml.row - 1 >= 0) && (maze[ml.row - 1][ml.col] != .Blocked) {
-        newMLs.append(MazeLocation(row: ml.row - 1, col: ml.col))
-    }
-    if (ml.col + 1 < maze[0].count) && (maze[ml.row][ml.col + 1] != .Blocked) {
-        newMLs.append(MazeLocation(row: ml.row, col: ml.col + 1))
-    }
-    if (ml.col - 1 >= 0) && (maze[ml.row][ml.col - 1] != .Blocked) {
-        newMLs.append(MazeLocation(row: ml.row, col: ml.col - 1))
-    }
-    
-    return newMLs
 }
-    return successors
+
+var maze = Maze(rows: 10, columns: 10, sparseness: 0.2)
+printMaze(maze)
+
+let goal = MazeLocation(row: 9, col: 9)
+func goalReached(location: MazeLocation) -> Bool {
+    return location == goal
 }
 
 ///Stack
@@ -240,7 +254,7 @@ func == <T>(lhs: Node<T>, rhs: Node<T>) -> Bool {
 
 ///dfs
 //returns a node containing the goal state
-func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType]) -> Node<StateType>? {
+func dfs<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType]) -> Node<StateType>? {
     // frontier is where we've yet to go
     let frontier: Stack<Node<StateType>> = Stack<Node<StateType>>()
     frontier.push(Node(state: initialState, parent: nil))
@@ -253,9 +267,9 @@ func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
         let currentNode = frontier.pop()
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) where !explored.contains(child) {
+        for child in successors(currentState) where !explored.contains(child) {
             explored.insert(child)
             frontier.push(Node(state: child, parent: currentNode))
         }
@@ -265,29 +279,21 @@ func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
 
 func nodeToPath<StateType>(_ node: Node<StateType>) -> [StateType] {
     var path: [StateType] = [node.state]
-    var currentNode = node.parent
+    var node = node
     // work backwards from end to front
-    while currentNode != nil {
-        path.insert(currentNode!.state, at: 0)
-        currentNode = currentNode!.parent
+    while let currentNode = node.parent {
+        path.insert(currentNode.state, at: 0)
+        node = currentNode
     }
     return path
 }
 
-func markMaze(_ maze: inout Maze, path: [MazeLocation], start: MazeLocation, goal: MazeLocation) {
-    for ml in path {
-        maze[ml.row][ml.col] = .Path
-    }
-    maze[start.row][start.col] = .Start
-    maze[goal.row][goal.col] = .Goal
-}
-
 let start = MazeLocation(row: 0, col: 0)
 
-if let solution = dfs(initialState: start, goalTestFn: goalTest, successorFn: successorsForMaze(maze)) {
+if let solution = dfs(initialState: start, goalReached: goalReached, successors: maze.successors) {
     let path = nodeToPath(solution)
-    markMaze(&maze, path: path, start: start, goal: goal)
-    printMaze(maze)
+    let solved = maze.marked(path: path, start: start, goal: goal)
+    printMaze(solved)
 }
 
 ///bfs
@@ -299,7 +305,7 @@ public class Queue<T> {
 }
 
 //returns a node containing the goal state
-func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType]) -> Node<StateType>? {
+func bfs<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType]) -> Node<StateType>? {
     // frontier is where we've yet to go
     let frontier: Queue<Node<StateType>> = Queue<Node<StateType>>()
     frontier.push(Node(state: initialState, parent: nil))
@@ -311,9 +317,9 @@ func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
         let currentNode = frontier.pop()
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) where !explored.contains(child) {
+        for child in successors(currentState) where !explored.contains(child) {
             explored.insert(child)
             frontier.push(Node(state: child, parent: currentNode))
         }
@@ -321,11 +327,11 @@ func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
     return nil // never found the goal
 }
 
-var maze2 = generateMaze(rows: 10, columns: 10, sparseness: 0.2)
-if let solution = bfs(initialState: start, goalTestFn: goalTest, successorFn: successorsForMaze(maze2)) {
+var maze2 = Maze(rows: 10, columns: 10, sparseness: 0.2)
+if let solution = bfs(initialState: start, goalReached: goalReached, successors: maze2.successors) {
     let path = nodeToPath(solution)
-    markMaze(&maze2, path: path, start: start, goal: goal)
-    printMaze(maze2)
+    let solved = maze.marked(path: path, start: start, goal: goal)
+    printMaze(solved)
 }
 
 //Heuristics
@@ -344,7 +350,7 @@ func manhattanDistance(ml: MazeLocation) -> Float {
 
 //a*
 //returns a node containing the goal state
-func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType], heuristicFn: (StateType) -> Float) -> Node<StateType>? {
+func astar<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType], heuristicFn: (StateType) -> Float) -> Node<StateType>? {
     // frontier is where we've yet to go
     var frontier: PriorityQueue<Node<StateType>> = PriorityQueue<Node<StateType>>(ascending: true, startingValues: [Node(state: initialState, parent: nil, cost: 0, heuristic: heuristicFn(initialState))])
     // explored is where we've been
@@ -354,9 +360,9 @@ func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType)
     while let currentNode = frontier.pop() {
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) {
+        for child in successors(currentState) {
             let newcost = currentNode.cost + 1  //1 assumes a grid, there should be a cost function for more sophisticated applications
             if (explored[child] == nil) || (explored[child]! > newcost) {
                 explored[child] = newcost
@@ -367,11 +373,11 @@ func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType)
     return nil // never found the goal
 }
 
-var maze3 = generateMaze(rows: 10, columns: 10, sparseness: 0.2)
-if let solution = astar(initialState: start, goalTestFn: goalTest, successorFn: successorsForMaze(maze3), heuristicFn: manhattanDistance) {
+var maze3 = Maze(rows: 10, columns: 10, sparseness: 0.2)
+if let solution = astar(initialState: start, goalReached: goalReached, successors: maze3.successors, heuristicFn: manhattanDistance) {
     let path = nodeToPath(solution)
-    markMaze(&maze3, path: path, start: start, goal: goal)
-    printMaze(maze3)
+    let solved = maze.marked(path: path, start: start, goal: goal)
+    printMaze(solved)
 }
 
 /// Missionaries and Cannibals
@@ -477,7 +483,7 @@ func printMCSolution(path: [MCState]) {
 }
 
 let startMC = MCState(missionaries: 3, cannibals: 3, boat: true)
-if let solution = bfs(initialState: startMC, goalTestFn: goalTestMC, successorFn: successorsMC) {
+if let solution = bfs(initialState: startMC, goalReached: goalTestMC, successors: successorsMC) {
     let path = nodeToPath(solution)
     printMCSolution(path: path)
 }

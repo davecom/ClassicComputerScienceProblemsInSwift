@@ -69,36 +69,35 @@ open class Constraint <V: Hashable, D> {
 /// - parameter csp: The CSP to operate on.
 /// - parameter assignment: Optionally, an already partially completed assignment.
 /// - returns: the assignment (solution), or nil if none can be found
-public func backtrackingSearch<V, D>(csp: CSP<V, D>, assignment: Dictionary<V, D> = Dictionary<V, D>()) -> Dictionary<V, D>?
-{
+public func backtrackingSearch<V, D>(csp: CSP<V, D>, assignment: Dictionary<V, D> = Dictionary<V, D>()) -> Dictionary<V, D>? {
     // assignment is complete if it has as many assignments as there are variables
     if assignment.count == csp.variables.count { return assignment } // base case
     
     // get an unassigned variable
-    var variable: V = csp.variables.first! // temporary
-    for x in csp.variables where assignment[x] == nil {
-        variable = x
-    }
-    
-    // get the domain of it and try each value in the domain
-    for value in csp.domains[variable]! {
-        var localAssignment = assignment
-        localAssignment[variable] = value
-        // if the value is consistent with the current assignment we continue
-        if isConsistent(variable: variable, value: value, assignment: localAssignment, csp: csp) {
-            // if as we go down the tree we get a complete assignment, return it
-            if let result = backtrackingSearch(csp: csp, assignment: localAssignment) {
-                return result
+    let unassigned = csp.variables.lazy.filter({ assignment[$0] == nil })
+    if let variable: V = unassigned.first, let domain = csp.domains[variable] {
+        // get the domain of it and try each value in the domain
+        for value in domain {
+            var localAssignment = assignment
+            localAssignment[variable] = value
+            // if the value is consistent with the current assignment we continue
+            if isConsistent(variable: variable, value: value, assignment: localAssignment, csp: csp) {
+                // if as we go down the tree we get a complete assignment, return it
+                if let result = backtrackingSearch(csp: csp, assignment: localAssignment) {
+                    return result
+                }
             }
         }
     }
+
     return nil  // no solution
 }
 
 /// check if the value assignment is consistent by checking all constraints of the variable
 func isConsistent<V, D>(variable: V, value: D, assignment: Dictionary<V, D>, csp: CSP<V,D>) -> Bool {
-    for constraint in csp.constraints[variable]! {
-        if !constraint.isSatisfied(assignment: assignment) {
+    if let domain = csp.constraints[variable] {
+        let unsatisfiedConstraints = domain.filter({ !$0.isSatisfied(assignment: assignment) })
+        if !unsatisfiedConstraints.isEmpty {
             return false
         }
     }
