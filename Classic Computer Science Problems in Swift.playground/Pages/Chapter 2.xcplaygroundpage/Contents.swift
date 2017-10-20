@@ -215,7 +215,7 @@ var maze = Maze(rows: 10, columns: 10, sparseness: 0.2)
 printMaze(maze)
 
 let goal = MazeLocation(row: 9, col: 9)
-func goalTest(location: MazeLocation) -> Bool {
+func goalReached(location: MazeLocation) -> Bool {
     return location == goal
 }
 
@@ -254,7 +254,7 @@ func == <T>(lhs: Node<T>, rhs: Node<T>) -> Bool {
 
 ///dfs
 //returns a node containing the goal state
-func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType]) -> Node<StateType>? {
+func dfs<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType]) -> Node<StateType>? {
     // frontier is where we've yet to go
     let frontier: Stack<Node<StateType>> = Stack<Node<StateType>>()
     frontier.push(Node(state: initialState, parent: nil))
@@ -267,9 +267,9 @@ func dfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
         let currentNode = frontier.pop()
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) where !explored.contains(child) {
+        for child in successors(currentState) where !explored.contains(child) {
             explored.insert(child)
             frontier.push(Node(state: child, parent: currentNode))
         }
@@ -290,7 +290,7 @@ func nodeToPath<StateType>(_ node: Node<StateType>) -> [StateType] {
 
 let start = MazeLocation(row: 0, col: 0)
 
-if let solution = dfs(initialState: start, goalTestFn: goalTest, successorFn: maze.successors) {
+if let solution = dfs(initialState: start, goalReached: goalReached, successors: maze.successors) {
     let path = nodeToPath(solution)
     let solved = maze.marked(path: path, start: start, goal: goal)
     printMaze(solved)
@@ -305,7 +305,7 @@ public class Queue<T> {
 }
 
 //returns a node containing the goal state
-func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType]) -> Node<StateType>? {
+func bfs<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType]) -> Node<StateType>? {
     // frontier is where we've yet to go
     let frontier: Queue<Node<StateType>> = Queue<Node<StateType>>()
     frontier.push(Node(state: initialState, parent: nil))
@@ -317,9 +317,9 @@ func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
         let currentNode = frontier.pop()
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) where !explored.contains(child) {
+        for child in successors(currentState) where !explored.contains(child) {
             explored.insert(child)
             frontier.push(Node(state: child, parent: currentNode))
         }
@@ -328,7 +328,7 @@ func bfs<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -
 }
 
 var maze2 = Maze(rows: 10, columns: 10, sparseness: 0.2)
-if let solution = bfs(initialState: start, goalTestFn: goalTest, successorFn: maze2.successors) {
+if let solution = bfs(initialState: start, goalReached: goalReached, successors: maze2.successors) {
     let path = nodeToPath(solution)
     let solved = maze.marked(path: path, start: start, goal: goal)
     printMaze(solved)
@@ -350,7 +350,7 @@ func manhattanDistance(ml: MazeLocation) -> Float {
 
 //a*
 //returns a node containing the goal state
-func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType) -> Bool, successorFn: (StateType) -> [StateType], heuristicFn: (StateType) -> Float) -> Node<StateType>? {
+func astar<StateType: Hashable>(initialState: StateType, goalReached: (StateType) -> Bool, successors: (StateType) -> [StateType], heuristicFn: (StateType) -> Float) -> Node<StateType>? {
     // frontier is where we've yet to go
     var frontier: PriorityQueue<Node<StateType>> = PriorityQueue<Node<StateType>>(ascending: true, startingValues: [Node(state: initialState, parent: nil, cost: 0, heuristic: heuristicFn(initialState))])
     // explored is where we've been
@@ -360,9 +360,9 @@ func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType)
     while let currentNode = frontier.pop() {
         let currentState = currentNode.state
         // if we found the goal, we're done
-        if goalTestFn(currentState) { return currentNode }
+        if goalReached(currentState) { return currentNode }
         // check where we can go next and haven't explored
-        for child in successorFn(currentState) {
+        for child in successors(currentState) {
             let newcost = currentNode.cost + 1  //1 assumes a grid, there should be a cost function for more sophisticated applications
             if (explored[child] == nil) || (explored[child]! > newcost) {
                 explored[child] = newcost
@@ -374,7 +374,7 @@ func astar<StateType: Hashable>(initialState: StateType, goalTestFn: (StateType)
 }
 
 var maze3 = Maze(rows: 10, columns: 10, sparseness: 0.2)
-if let solution = astar(initialState: start, goalTestFn: goalTest, successorFn: maze3.successors, heuristicFn: manhattanDistance) {
+if let solution = astar(initialState: start, goalReached: goalReached, successors: maze3.successors, heuristicFn: manhattanDistance) {
     let path = nodeToPath(solution)
     let solved = maze.marked(path: path, start: start, goal: goal)
     printMaze(solved)
@@ -483,7 +483,7 @@ func printMCSolution(path: [MCState]) {
 }
 
 let startMC = MCState(missionaries: 3, cannibals: 3, boat: true)
-if let solution = bfs(initialState: startMC, goalTestFn: goalTestMC, successorFn: successorsMC) {
+if let solution = bfs(initialState: startMC, goalReached: goalTestMC, successors: successorsMC) {
     let path = nodeToPath(solution)
     printMCSolution(path: path)
 }
