@@ -74,21 +74,21 @@ public func backtrackingSearch<V, D>(csp: CSP<V, D>, assignment: Dictionary<V, D
     // assignment is complete if it has as many assignments as there are variables
     if assignment.count == csp.variables.count { return assignment } // base case
     
-    // get an unassigned variable
-    var variable: V = csp.variables.first! // temporary
-    for x in csp.variables where assignment[x] == nil {
-        variable = x
-    }
+    // what are the unassigned variables?
+    let unassigned = csp.variables.lazy.filter({ assignment[$0] == nil })
     
-    // get the domain of it and try each value in the domain
-    for value in csp.domains[variable]! {
-        var localAssignment = assignment
-        localAssignment[variable] = value
-        // if the value is consistent with the current assignment we continue
-        if isConsistent(variable: variable, value: value, assignment: localAssignment, csp: csp) {
-            // if as we go down the tree we get a complete assignment, return it
-            if let result = backtrackingSearch(csp: csp, assignment: localAssignment) {
-                return result
+    // get the domain of the first unassigned variable
+    if let variable: V = unassigned.first, let domain = csp.domains[variable] {
+        // try each value in the domain
+        for value in domain {
+            var localAssignment = assignment
+            localAssignment[variable] = value
+            // if the value is consistent with the current assignment we continue
+            if isConsistent(variable: variable, value: value, assignment: localAssignment, csp: csp) {
+                // if as we go down the tree we get a complete assignment, return it
+                if let result = backtrackingSearch(csp: csp, assignment: localAssignment) {
+                    return result
+                }
             }
         }
     }
@@ -97,7 +97,7 @@ public func backtrackingSearch<V, D>(csp: CSP<V, D>, assignment: Dictionary<V, D
 
 /// check if the value assignment is consistent by checking all constraints of the variable
 func isConsistent<V, D>(variable: V, value: D, assignment: Dictionary<V, D>, csp: CSP<V,D>) -> Bool {
-    for constraint in csp.constraints[variable]! {
+    for constraint in csp.constraints[variable] ?? [] {
         if !constraint.isSatisfied(assignment: assignment) {
             return false
         }
@@ -160,14 +160,14 @@ final class QueensConstraint: Constraint <Int, Int> {
     }
     
     override func isSatisfied(assignment: Dictionary<Int, Int>) -> Bool {
-        for (q1c, q1r) in assignment {
+        for (q1c, q1r) in assignment { // q1c = queen 1 column, q1r = queen 1 row
             if (q1c >= vars.count) {
                 break
             }
-            for q2c in (q1c + 1)..<vars.count {
-                if let q2r = assignment[q2c] {
-                    if q1r == q2r { return false }
-                    if abs(q1r - q2r) == abs(q1c - q2c) { return false }
+            for q2c in (q1c + 1)...vars.count { // queen 2 column
+                if let q2r = assignment[q2c] { // queen 2 row
+                    if q1r == q2r { return false }  // rows same?
+                    if abs(q1r - q2r) == abs(q1c - q2c) { return false } // same diagonal?
                 }
             }
         }

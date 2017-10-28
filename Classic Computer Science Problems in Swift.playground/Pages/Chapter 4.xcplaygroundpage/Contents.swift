@@ -52,7 +52,7 @@ extension Graph {
         if let i = vertices.index(of: vertex) {
             return i
         }
-        return nil;
+        return nil
     }
     
     /// Find all of the neighbors of a vertex at a given index.
@@ -339,11 +339,11 @@ open class WeightedGraph<V: Equatable & Hashable, W: Comparable & Summable>: Gra
     /// - parameter index: The index for the vertex to find the neighbors of.
     /// - returns: An array of tuples including the vertices as the first element and the weights as the second element.
     public func neighborsForIndexWithWeights(_ index: Int) -> [(V, W)] {
-        var distanceTuples: [(V, W)] = [(V, W)]();
+        var distanceTuples: [(V, W)] = [(V, W)]()
         for edge in edges[index] {
             distanceTuples += [(vertices[edge.v], edge.weight)]
         }
-        return distanceTuples;
+        return distanceTuples
     }
     
     /// This is a convenience method that adds a weighted edge.
