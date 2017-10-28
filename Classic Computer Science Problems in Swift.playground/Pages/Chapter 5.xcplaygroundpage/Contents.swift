@@ -210,7 +210,6 @@ final class SimpleEquation: Chromosome {
 
 let se = GeneticAlgorithm<SimpleEquation>(size: 10, threshold: 13.0, maxGenerations: 100, mutationChance: 0.1, crossoverChance: 0.7)
 let result1 = se.run()
-result1.fitness
 result1.prettyPrint()
 
 
