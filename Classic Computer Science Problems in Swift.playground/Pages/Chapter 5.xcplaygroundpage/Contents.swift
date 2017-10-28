@@ -27,7 +27,7 @@ extension Array {
         if count < 2 { return shuffledArray } // already shuffled
         for i in (1..<count).reversed() { // count backwards
             let position = Int(arc4random_uniform(UInt32(i + 1))) // random to swap
-            if i != position { // swap with the end, don't bother with selp swaps
+            if i != position { // swap with the end, don't bother with swap
                 shuffledArray.swapAt(i, position)
             }
         }
