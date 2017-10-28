@@ -30,12 +30,14 @@ struct Item {
 func knapsack(items: [Item], maxCapacity: Int) -> [Item] {
     //build up dynamic programming table
     var table: [[Float]] = [[Float]](repeating: [Float](repeating: 0.0, count: maxCapacity + 1), count: items.count + 1)  //initialize table - overshooting in size
-    for i in 1...items.count {
+    for (i, item) in items.enumerated() {
         for capacity in 1...maxCapacity {
-            if capacity - items[i - 1].weight >= 0 { // still room in knapsack
-                table[i][capacity] = max(table[i - 1][capacity - items[i - 1].weight] + items[i - 1].value, table[i - 1][capacity])  // only take if more valuable than previous combo
+            let previousItemsValue = table[i][capacity]
+            if capacity >= item.weight { // item fits in knapsack
+                let valueFreeingWeightForItem = table[i][capacity - item.weight]
+                table[i + 1][capacity] = max(valueFreeingWeightForItem + item.value, previousItemsValue)  // only take if more valuable than previous combo
             } else { // no room for this item
-                table[i][capacity] = table[i - 1][capacity] //use prior combo
+                table[i + 1][capacity] = previousItemsValue //use prior combo
             }
         }
     }
