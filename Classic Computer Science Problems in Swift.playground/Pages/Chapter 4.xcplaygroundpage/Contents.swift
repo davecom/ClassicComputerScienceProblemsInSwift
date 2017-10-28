@@ -52,7 +52,7 @@ extension Graph {
         if let i = vertices.index(of: vertex) {
             return i
         }
-        return nil;
+        return nil        
     }
     
     /// Find all of the neighbors of a vertex at a given index.
@@ -90,12 +90,11 @@ extension Graph {
         }
         return nil
     }
-    
     /// Add a vertex to the graph.
     ///
     /// - parameter v: The vertex to be added.
     /// - returns: The index where the vertex was added.
-    public func addVertex(_ v: VertexType) -> Int {
+    @discardableResult public func addVertex(_ v: VertexType) -> Int {
         vertices.append(v)
         edges.append([EdgeType]())
         return vertices.count - 1
@@ -133,16 +132,13 @@ open class UnweightedEdge: Edge {
 open class UnweightedGraph<V: Equatable>: Graph {
     var vertices: [V] = [V]()
     var edges: [[UnweightedEdge]] = [[UnweightedEdge]]() //adjacency lists
-    
-    public init() {
-    }
-    
+
     public init(vertices: [V]) {
         for vertex in vertices {
-            _ = self.addVertex(vertex)
+            self.addVertex(vertex)
         }
     }
-    
+
     /// This is a convenience method that adds an unweighted edge.
     ///
     /// - parameter from: The starting vertex's index.
@@ -150,7 +146,7 @@ open class UnweightedGraph<V: Equatable>: Graph {
     public func addEdge(from: Int, to: Int) {
         addEdge(UnweightedEdge(u: from, v: to))
     }
-    
+
     /// This is a convenience method that adds an unweighted, undirected edge between the first occurence of two vertices.
     ///
     /// - parameter from: The starting vertex.
@@ -162,7 +158,7 @@ open class UnweightedGraph<V: Equatable>: Graph {
             }
         }
     }
-    
+
     /// MARK: Implement CustomStringConvertible
     public var description: String {
         var d: String = ""
@@ -324,26 +320,22 @@ open class WeightedEdge<W: Comparable & Summable>: Edge, Comparable {
 open class WeightedGraph<V: Equatable & Hashable, W: Comparable & Summable>: Graph {
     var vertices: [V] = [V]()
     var edges: [[WeightedEdge<W>]] = [[WeightedEdge<W>]]() //adjacency lists
-    
-    public init() {
-    }
-    
+
     public init(vertices: [V]) {
         for vertex in vertices {
-            _ = self.addVertex(vertex)
+            self.addVertex(vertex)
         }
     }
-    
     /// Find all of the neighbors of a vertex at a given index.
     ///
     /// - parameter index: The index for the vertex to find the neighbors of.
     /// - returns: An array of tuples including the vertices as the first element and the weights as the second element.
     public func neighborsForIndexWithWeights(_ index: Int) -> [(V, W)] {
-        var distanceTuples: [(V, W)] = [(V, W)]();
+        var distanceTuples: [(V, W)] = [(V, W)]()
         for edge in edges[index] {
             distanceTuples += [(vertices[edge.v], edge.weight)]
         }
-        return distanceTuples;
+        return distanceTuples
     }
     
     /// This is a convenience method that adds a weighted edge.
@@ -520,7 +512,7 @@ public extension WeightedGraph {
         
         return (distances, pathDict)
     }
-    
+
     
     /// A convenience version of dijkstra() that allows the supply of the root
     /// vertex instead of the index of the root vertex.
@@ -530,7 +522,7 @@ public extension WeightedGraph {
         }
         return ([], [:])
     }
-    
+
     /// Helper function to get easier access to Dijkstra results.
     public func distanceArrayToVertexDict(distances: [W?]) -> [V : W?] {
         var distanceDict: [V: W?] = [V: W?]()
