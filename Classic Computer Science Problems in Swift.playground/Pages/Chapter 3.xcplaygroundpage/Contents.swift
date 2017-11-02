@@ -213,7 +213,7 @@ func generateGrid(rows: Int, columns: Int) -> Grid {
     // replace spaces with random letters
     for row in 0..<rows {
         for col in 0..<columns {
-            let loc = ALPHABET.index(ALPHABET.startIndex, offsetBy: Int(arc4random_uniform(UInt32(ALPHABET.characters.count))))
+            let loc = ALPHABET.index(ALPHABET.startIndex, offsetBy: Int(arc4random_uniform(UInt32(ALPHABET.count))))
             grid[row][col] = ALPHABET[loc]
         }
     }
@@ -234,7 +234,7 @@ func generateDomain(word: String, grid: Grid) -> [[GridLocation]] {
     var domain: [[GridLocation]] = [[GridLocation]]()
     let height = grid.count
     let width = grid[0].count
-    let wordLength = word.characters.count
+    let wordLength = word.count
     for row in 0..<height {
         for col in 0..<width {
             let columns = col...(col + wordLength)
@@ -293,7 +293,7 @@ wordsearch.addConstraint(WordSearchConstraint(words: words))
 if let solution = backtrackingSearch(csp: wordsearch) {
     for (word, gridLocations) in solution {
         let gridLocs = arc4random_uniform(2) > 0 ? gridLocations : gridLocations.reversed() // randomly reverse word half the time
-        for (index, letter) in word.characters.enumerated() {
+        for (index, letter) in word.enumerated() {
             let (row, col) = (gridLocs[index].row, gridLocations[index].col)
             grid[row][col] = letter
         }

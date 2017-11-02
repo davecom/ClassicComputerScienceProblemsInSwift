@@ -74,7 +74,7 @@ struct CompressedGene {
     private let bitVector: CFMutableBitVector
     
     init(original: String) {
-        length = original.characters.count
+        length = original.count
         // default allocator, need 2 * length number of bits
         bitVector = CFBitVectorCreateMutable(kCFAllocatorDefault, length * 2)
         CFBitVectorSetCount(bitVector, length * 2) // fills the bit vector with 0s
@@ -82,7 +82,7 @@ struct CompressedGene {
     }
     
     private func compress(gene: String) {
-        for (index, nucleotide) in gene.uppercased().characters.enumerated() {
+        for (index, nucleotide) in gene.uppercased().enumerated() {
             let nStart = index * 2 // start of each new nucleotide
             switch nucleotide {
             case "A": // 00

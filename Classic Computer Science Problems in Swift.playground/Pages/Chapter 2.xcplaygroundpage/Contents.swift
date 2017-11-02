@@ -50,8 +50,8 @@ let geneSequence = "ACGTGGCTCTCTAACGTACGTACGTACGGGGTTTATATATACCCTAGGACTCCCTTT"
 
 func stringToGene(_ s: String) -> Gene {
     var gene = Gene()
-    for i in stride(from: 0, to: s.characters.count, by: 3) {
-        guard (i + 2) < s.characters.count else { return gene }
+    for i in stride(from: 0, to: s.count, by: 3) {
+        guard (i + 2) < s.count else { return gene }
         if let n1 = Nucleotide.init(rawValue: s[s.index(s.startIndex, offsetBy: i)]), let n2 = Nucleotide.init(rawValue: s[s.index(s.startIndex, offsetBy: i + 1)]), let n3 = Nucleotide.init(rawValue: s[s.index(s.startIndex, offsetBy: i + 2)]) {
             gene.append((n1, n2, n3))
         }
