@@ -407,7 +407,7 @@ cityGraph2.addEdge(from: "Boston", to: "New York", weight: 190)
 cityGraph2.addEdge(from: "New York", to: "Philadelphia", weight: 81)
 cityGraph2.addEdge(from: "Philadelphia", to: "Washington", weight: 123)
 
-print(cityGraph2.description)
+print(cityGraph2)
 
 /// Find the total weight of an array of weighted edges
 /// - parameter edges The edge array to find the total weight of.
