@@ -47,7 +47,7 @@ public protocol Chromosome {
 open class GeneticAlgorithm<ChromosomeType: Chromosome> {
     enum SelectionType {
         case roulette
-        case tournament(UInt) // the Int is the number of participants in the tournament
+        case tournament(UInt) // the UInt is the number of participants in the tournament
     }
     
     private let threshold: Double // at what fitness level to stop running
@@ -226,7 +226,7 @@ final class SendMoreMoney: Chromosome {
             let more: Int = m * 1000 + o * 100 + r * 10 + e
             let money: Int = m * 10000 + o * 1000 + n * 100 + e * 10 + y
             let difference = abs(money - (send + more))
-            return 1/Double(difference + 1)
+            return 1 / Double(difference + 1)
         }
         return 0
     }
