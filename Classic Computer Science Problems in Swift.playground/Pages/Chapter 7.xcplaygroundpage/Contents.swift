@@ -133,7 +133,7 @@ class Layer {
     var neurons: [Neuron]
     var outputCache: [Double]
     
-    init(previousLayer: Layer? = nil, numNeurons: Int, activationFunction: @escaping (Double) -> Double, derivativeActivationFunction: @escaping (Double)-> Double, learningRate: Double) {
+    init(previousLayer: Layer? = nil, numNeurons: Int, activationFunction: @escaping (Double) -> Double, derivativeActivationFunction: @escaping (Double) -> Double, learningRate: Double) {
         self.previousLayer = previousLayer
         self.neurons = Array<Neuron>()
         for _ in 0..<numNeurons {
@@ -222,7 +222,7 @@ class Network {
     /// train() uses the results of outputs() run over
     /// many *inputs* and compared against *expecteds* to feed
     /// backpropagate() and updateWeights()
-    func train(inputs:[[Double]], expecteds:[[Double]], printError:Bool = false, threshold:Double? = nil) {
+    func train(inputs: [[Double]], expecteds: [[Double]], printError: Bool = false, threshold: Double? = nil) {
         for (location, xs) in inputs.enumerated() {
             let ys = expecteds[location]
             let outs = outputs(input: xs)
@@ -358,7 +358,7 @@ func parseWineCSV() -> (parameters: [[Double]], classifications: [[Double]], spe
 
 let (wineParameters, wineClassifications, wineSpecies) = parseWineCSV()
 
-let wineNetwork: Network = Network(layerStructure: [13,7,3], learningRate: 0.9)
+let wineNetwork: Network = Network(layerStructure: [13, 7, 3], learningRate: 0.9)
 
 func wineInterpretOutput(output: [Double]) -> Int {
     if output.max()! == output[0] {
