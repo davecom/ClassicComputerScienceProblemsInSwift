@@ -25,6 +25,7 @@ The Playground is compatible with Swift 4 (Xcode 9).
 ### Free Content Based on the Book
 
 - [Article: Solving Mazes with Swift](http://freecontent.manning.com/solving-mazes-with-swift/)
+- [Article: Tic-Tac-Toe AI in Swift](http://freecontent.manning.com/classic-computer-science-problems-in-swift-tic-tac-toe/)
 - [Slides: A* Search in Swift: Navigating a Maze](http://freecontent.manning.com/slideshare-a-search-in-swift-navigating-a-maze/)
 
 ### Miscellaneous
