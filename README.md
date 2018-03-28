@@ -2,7 +2,7 @@
 ![Classic Computer Science Problems in Swift Cover](cover.jpg)
 ## By David Kopec
 
-This is the Xcode Playground to accompany the forthcoming book *Classic Computer Science Problems in Swift* by David Kopec. The book is now available for early access [through Manning's MEAP program](https://www.manning.com/books/classic-computer-science-problems-in-swift).
+This is the Xcode Playground to accompany the book *Classic Computer Science Problems in Swift* by David Kopec. The book is available for purchase [directly from the publisher, Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift), and from other book vendors.
 
 ## Versioning
 
