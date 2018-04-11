@@ -44,8 +44,8 @@ func fib3(n: UInt) -> UInt {
         return result
     } else {
         fibMemo[n] = fib3(n: n - 1) + fib3(n: n - 2)  // memoization
+        return fibMemo[n]!
     }
-    return fibMemo[n]!
 }
 
 fib3(n: 2)
