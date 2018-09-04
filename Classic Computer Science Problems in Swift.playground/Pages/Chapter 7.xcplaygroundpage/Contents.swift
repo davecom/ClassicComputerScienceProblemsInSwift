@@ -201,7 +201,7 @@ class Network {
         //calculate delta for output layer neurons
         layers.last?.calculateDeltasForOutputLayer(expected: expected)
         //calculate delta for prior layers
-        for l in 1..<layers.count - 1 {
+        for l in (1..<layers.count - 1).reversed() {
             layers[l].calculateDeltasForHiddenLayer(nextLayer: layers[l + 1])
         }
     }
@@ -222,7 +222,7 @@ class Network {
     /// train() uses the results of outputs() run over
     /// many *inputs* and compared against *expecteds* to feed
     /// backpropagate() and updateWeights()
-    func train(inputs: [[Double]], expecteds: [[Double]], printError: Bool = false, threshold: Double? = nil) {
+    func train(inputs: [[Double]], expecteds: [[Double]], printError: Bool = false) {
         for (location, xs) in inputs.enumerated() {
             let ys = expecteds[location]
             let outs = outputs(input: xs)
