@@ -319,7 +319,7 @@ func normalizeByFeatureScaling(dataset: inout [[Double]]) {
 //    irisNetwork.train(inputs: irisTrainers, expecteds: irisTrainersCorrects, printError: false)
 //}
 //
-//// test over the last 10 of the irses in the data set
+//// test over the last 10 of the irises in the data set
 //let irisTesters = Array(irisParameters[140..<150])
 //let irisTestersCorrects = Array(irisSpecies[140..<150])
 //let irisResults = irisNetwork.validate(inputs: irisTesters, expecteds: irisTestersCorrects, interpretOutput: irisInterpretOutput)
