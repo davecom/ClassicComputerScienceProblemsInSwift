@@ -151,7 +151,7 @@ let phoneMapping: [Character: [Character]] = ["1": ["1"], "2": ["a", "b", "c"], 
 
 // return all of the possible characters combos, given a mapping, for a given number
 func stringToPossibilities(_ s: String, mapping: [Character: [Character]]) -> [[Character]]{
-    let possibilities = s.flatMap{ mapping[$0] }
+    let possibilities = s.compactMap{ mapping[$0] }
     print(possibilities)
     return combineAllPossibilities(possibilities)
 }
