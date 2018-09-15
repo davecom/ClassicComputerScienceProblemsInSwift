@@ -62,7 +62,7 @@ let items = [Item(name: "television", weight: 50, value: 500),
              Item(name: "jewelry", weight: 1, value: 4000),
              Item(name: "books", weight: 100, value: 300),
              Item(name: "printer", weight: 18, value: 30),
-             Item(name: "refridgerator", weight: 200, value: 700),
+             Item(name: "refrigerator", weight: 200, value: 700),
              Item(name: "painting", weight: 10, value: 1000)]
 knapsack(items: items, maxCapacity: 75)
 
