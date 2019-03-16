@@ -15,6 +15,11 @@ The Playground is compatible with Swift 4 (Xcode 9).
 - [Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift)
 - [Amazon](http://amzn.to/2xG6nlF)
 
+### Classic Computer Science Problems Series
+
+- [Classic Computer Science Problems informational site](https://classicproblems.com/)
+- [Classic Computer Science Problems in Python](https://github.com/davecom/ClassicComputerScienceProblemsInPython)
+
 ### Open Source Projects Mentioned in the Book
 
 - [SwiftPriorityQueue](https://github.com/davecom/SwiftPriorityQueue)
