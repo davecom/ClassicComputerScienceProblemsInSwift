@@ -2,7 +2,7 @@
 ![Classic Computer Science Problems in Swift Cover](cover.jpg)
 ## By David Kopec
 
-This is the Xcode Playground to accompany the book *Classic Computer Science Problems in Swift* by David Kopec. The book is available for purchase [directly from the publisher, Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift), and from other book vendors.
+This is the Xcode Playground to accompany the book *Classic Computer Science Problems in Swift* by David Kopec. The book is available for purchase [directly from the publisher, Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift?a_aid=oaksnow&a_bid=8de75028), and from other book vendors.
 
 ## Versioning
 
@@ -12,13 +12,14 @@ The Playground is compatible with Swift 4 (Xcode 9).
 
 ### Get the Book
 
-- [Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift)
+- [Manning](https://www.manning.com/books/classic-computer-science-problems-in-swift?a_aid=oaksnow&a_bid=8de75028)
 - [Amazon](http://amzn.to/2xG6nlF)
 
 ### Classic Computer Science Problems Series
 
 - [Classic Computer Science Problems informational site](https://classicproblems.com/)
 - [Classic Computer Science Problems in Python](https://github.com/davecom/ClassicComputerScienceProblemsInPython)
+- [Classic Computer Science Problems in Java](https://github.com/davecom/ClassicComputerScienceProblemsInJava)
 
 ### Open Source Projects Mentioned in the Book
 
