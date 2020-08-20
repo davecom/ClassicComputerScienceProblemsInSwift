@@ -34,9 +34,16 @@ The Playground is compatible with Swift 4 (Xcode 9).
 - [Article: Tic-Tac-Toe AI in Swift](http://freecontent.manning.com/classic-computer-science-problems-in-swift-tic-tac-toe/)
 - [Slides: A* Search in Swift: Navigating a Maze](http://freecontent.manning.com/slideshare-a-search-in-swift-navigating-a-maze/)
 
-### Miscellaneous
+### Other Books and Languages
+Official Books from the Series by @davecom 
+- [Classic Computer Science Problems in Java](https://github.com/davecom/ClassicComputerScienceProblemsInJava)
+- [Classic Computer Science Problems in Python](https://github.com/davecom/ClassicComputerScienceProblemsInPython)
 
-- [A Reimplementation of the Book in C++ (not by the author)](https://github.com/araya-andres/classic_computer_sci)
+Ports
+- [C++ implementation by @aray-andres](https://github.com/araya-andres/classic_computer_sci)
+- [Go implementation by @arlima](https://github.com/arlima/problemas_classicos_CC)
+- [PHP implementation by @SaschaKersken (German translator of CCSPiP)](https://github.com/SaschaKersken/ClassicComputerScienceProblemsInPhp)
+- [JavaScript implementation by @SaschaKersken (German translator of CCSPiP)](https://github.com/SaschaKersken/ClassicComputerScienceProblemsInJavaScript)
 
 ## License
 
