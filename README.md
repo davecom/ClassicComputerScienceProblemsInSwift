@@ -39,6 +39,9 @@ Official Books from the Series by @davecom
 - [Classic Computer Science Problems in Java](https://github.com/davecom/ClassicComputerScienceProblemsInJava)
 - [Classic Computer Science Problems in Python](https://github.com/davecom/ClassicComputerScienceProblemsInPython)
 
+My Latest Book
+- [Computer Science from Scratch: Building Interpreters, Art, Emulators and ML in Python](https://github.com/davecom/ComputerScienceFromScratch)
+
 Ports
 - [C++ implementation by @aray-andres](https://github.com/araya-andres/classic_computer_sci)
 - [Go implementation by @arlima](https://github.com/arlima/problemas_classicos_CC)
